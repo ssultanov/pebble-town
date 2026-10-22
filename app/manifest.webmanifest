@@ -1,0 +1,16 @@
+{
+  "name": "Pebble Town",
+  "short_name": "Pebble Town",
+  "description": "A toy house for kids to explore: friends to dress up, pets to feed, four rooms to play in.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#3B3566",
+  "theme_color": "#3B3566",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
