@@ -57,7 +57,7 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:4px}
 .rt[aria-pressed="true"]{box-shadow:0 5px 0 var(--ink),0 0 0 4px var(--frame),0 0 0 8px var(--sun);transform:translateY(-2px)}
 .rt.back{background:var(--coral)}
 .tb[aria-pressed="true"]#bBuild{background:var(--sun);box-shadow:0 5px 0 var(--ink),0 0 0 4px var(--frame),0 0 0 8px var(--sun)}
-#map{position:fixed;inset:0;z-index:15;background:#8BCB5B;animation:mapIn .32s ease-out}
+#map{position:fixed;inset:0;z-index:15;background:#97C463;animation:mapIn .32s ease-out}
 #mapSvg{width:100%;height:100%;display:block;touch-action:none;overflow:visible}
 #mapSvg .hot{cursor:pointer}
 #bMapClose{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 16px);background:var(--coral)}
@@ -1925,14 +1925,14 @@ function mHull(F,u0,u1,w0,w1,h){ // tappable outline around a building (a bit bi
   return `<path d="${pth(lo.slice(0,-1).concat(up.slice(0,-1)))}" fill="transparent"/>`;
 }
 const mShadow=(F,u0,u1,w0,w1)=>`<path d="${pth([fp(F,u0,w0),fp(F,u1+8,w0),fp(F,u1+8,w1+10),fp(F,u0,w1+10)])}" fill="${K}" opacity=".12"/>`;
-function mtree(X,Y,r=13,c='#4CAF5E'){
+function mtree(X,Y,r=13,c='#4E9B3F'){
   return `<ellipse cx="${(X+5).toFixed(1)}" cy="${Y.toFixed(1)}" rx="${(r*1.1).toFixed(1)}" ry="${(r*.42).toFixed(1)}" fill="${K}" opacity=".15"/>
 <rect x="${(X-3).toFixed(1)}" y="${(Y-r*1.1).toFixed(1)}" width="6" height="${(r*1.1).toFixed(1)}" fill="#8B5E3C" ${SW} stroke-width="2.5"/>
 <circle cx="${X.toFixed(1)}" cy="${(Y-r*1.6).toFixed(1)}" r="${r}" fill="${shade(c,.85)}" ${SW} stroke-width="3"/><circle cx="${(X-r*.25).toFixed(1)}" cy="${(Y-r*1.75).toFixed(1)}" r="${(r*.62).toFixed(1)}" fill="${c}"/>`;
 }
 // The street buildings, seen from above. Sizes are map pixels; F is centred on the lot, the front wall is at w=0.
 // Parts are drawn far-to-near along the street (nearU tells which end of the street is closer to us).
-const mbush=(F,u,w,r=6)=>{ const [X,Y]=fp(F,u,w); return `<circle cx="${X.toFixed(1)}" cy="${(Y-r*.7).toFixed(1)}" r="${r}" fill="#3E9A50" ${SW} stroke-width="2.5"/><circle cx="${(X-r*.3).toFixed(1)}" cy="${(Y-r).toFixed(1)}" r="${(r*.55).toFixed(1)}" fill="#5DBB63"/>`; };
+const mbush=(F,u,w,r=6)=>{ const [X,Y]=fp(F,u,w); return `<circle cx="${X.toFixed(1)}" cy="${(Y-r*.7).toFixed(1)}" r="${r}" fill="#3F8A3A" ${SW} stroke-width="2.5"/><circle cx="${(X-r*.3).toFixed(1)}" cy="${(Y-r).toFixed(1)}" r="${(r*.55).toFixed(1)}" fill="#62AE47"/>`; };
 const mshut=(x,y,w,h,c)=>`<rect x="${x-4}" y="${y}" width="3.5" height="${h}" fill="${c}" ${SW} stroke-width="1.5"/><rect x="${x+w+.5}" y="${y}" width="3.5" height="${h}" fill="${c}" ${SW} stroke-width="1.5"/>`;
 const mbase=(len,c,h=4)=>`<rect x="0" y="${-h}" width="${len}" height="${h}" fill="${shade(c,.8)}"/>`;
 const msideWins=(dep,H,rows)=>{ let t=''; for(const y of rows) for(let x=8;x<dep-12;x+=16) t+=mwin(x,y,9,9); return t; };
@@ -1967,12 +1967,12 @@ function mBld(type,c,F){
   }
   if(type==='school'){
     const W=64, D=64, H=66;
-    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,W,0,D,0,H,'#D9694F')+mbox(F,-W-3,W+3,-3,D+3,H,H+6,'#A9A5BC');
+    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,W,0,D,0,H,'#C0583F')+mbox(F,-W-3,W+3,-3,D+3,H,H+6,'#A7A9B1');
     let ws=''; for(const x of [8,32,82,106]) ws+=mwin(x,-56,16,15)+mwin(x,-30,16,15);
-    s+=mface(F,-W,0,mbase(2*W,'#D9694F')+ws+`<path d="M0,-40 H${2*W}" stroke="#FFF8EE" stroke-width="3"/>`+mdoor(W-12,24,34,'#5A4FA0')+`<path d="M${W},-34 V0" ${SW} stroke-width="2"/>`
+    s+=mface(F,-W,0,mbase(2*W,'#C0583F')+ws+`<path d="M0,-40 H${2*W}" stroke="#FFF8EE" stroke-width="3"/>`+mdoor(W-12,24,34,'#5A4FA0')+`<path d="M${W},-34 V0" ${SW} stroke-width="2"/>`
       +`<rect x="${W-16}" y="-40" width="32" height="5" rx="2" fill="#4CB8D8" ${SW} stroke-width="2"/>`);
-    s+=mside(F,nearLow?-W:W,0,mbase(D,'#D9694F')+msideWins(D,H,[-56,-30]));
-    s+=mbox(F,-16,16,6,34,H+6,H+42,'#D9694F')+mgable(F,-18,18,4,36,H+42,22,'#6E6A88','#D9694F');
+    s+=mside(F,nearLow?-W:W,0,mbase(D,'#C0583F')+msideWins(D,H,[-56,-30]));
+    s+=mbox(F,-16,16,6,34,H+6,H+42,'#C0583F')+mgable(F,-18,18,4,36,H+42,22,'#5E6472','#C0583F');
     s+=mface(F,-16,6,`<circle cx="16" cy="-${H+24}" r="10" fill="#FFF8EE" ${SW} stroke-width="2.5"/><path d="M16,-${H+24} v-7 M16,-${H+24} h5" ${SW} stroke-width="2.5" stroke-linecap="round"/>`);
     s+=mbush(F,-W+8,-5,8)+mbush(F,-W+24,-5,7)+mbush(F,W-24,-5,7)+mbush(F,W-8,-5,8);
     const q=P(W-16,D-16,H+6), fl=P(-W+10,6,H+6);
@@ -1982,10 +1982,10 @@ function mBld(type,c,F){
   }
   if(type==='library'){
     const W=54, D=60, H=58;
-    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,W,0,D,0,H,'#C95A45');
-    s+=mside(F,nearLow?-W:W,0,mbase(D,'#C95A45')+msideWins(D,H,[-48,-26]).replace(/rx="2"/g,'rx="4"'));
-    s+=mgableX(F,-W-3,W+3,-3,D,H,28,'#7D7B94','#FFF8EE');
-    s+=mface(F,-W,0,mbase(2*W,'#C95A45')+mwin(14,-46,12,26,6)+mwin(2*W-26,-46,12,26,6)+mdoor(W-10,20,34,'#4C6FD8'))
+    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,W,0,D,0,H,'#B9553F');
+    s+=mside(F,nearLow?-W:W,0,mbase(D,'#B9553F')+msideWins(D,H,[-48,-26]).replace(/rx="2"/g,'rx="4"'));
+    s+=mgableX(F,-W-3,W+3,-3,D,H,28,'#5E6472','#FFF8EE');
+    s+=mface(F,-W,0,mbase(2*W,'#B9553F')+mwin(14,-46,12,26,6)+mwin(2*W-26,-46,12,26,6)+mdoor(W-10,20,34,'#4C6FD8'))
       +mface(F,-W-3,-3,`<path d="${heart(W+3,-H-10,6)}" fill="#FF7A5C" ${SW} stroke-width="1.5"/><path d="M2,${-H} H${2*W+4}" ${SW} stroke-width="2.5"/>`);
     // columns standing out in front, then two steps
     for(const x of [-42,-22,22,42]) s+=mbox(F,x-3,x+3,-8,-2,4,H-4,'#FFF8EE','#FFF8EE',2);
@@ -1995,17 +1995,19 @@ function mBld(type,c,F){
     return {s:s+top,h:H+52,W,D};
   }
   if(type==='market'){
-    const W=58, D=62, H=112;
-    const aw=(y,a)=>{ let t=''; for(let i=0;i<10;i++) t+=`<path d="M${i*10},${y} h10 v5 a5,4 0 0 1 -10,0 Z" fill="${i%2?'#FFF8EE':a}" ${SW} stroke-width="2"/>`; return t; };
-    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,W,0,D,0,H,'#EFE7DA')+mbox(F,-W-2,W+2,-2,D+2,H,H+6,'#FFF8EE');
-    s+=mface(F,-W,0,mbase(2*W,'#EFE7DA')+`<path d="M0,-38 H${2*W} M0,-76 H${2*W}" stroke="#FFF8EE" stroke-width="3"/>`+mwin(6,-30,48,22,3)+mwin(6,-68,68,22,3)+mwin(6,-104,68,22,3)+mdoor(60,20,28,'#D7F0FF')
-      +`<rect x="88" y="-108" width="22" height="106" fill="#E6F6FF" ${SW} stroke-width="2.5"/><rect x="91" y="-46" width="16" height="14" rx="2" fill="#FFD15C" ${SW} stroke-width="2"/>`
-      +aw(-38,'#3FA34D')+aw(-76,'#3FA34D')+aw(-112,'#3FA34D'));
-    s+=mside(F,nearLow?-W:W,0,mbase(D,'#EFE7DA')+msideWins(D,H,[-104,-86,-68,-50,-30]));
-    s+=mbox(F,W-26,W-10,D-24,D-8,H+6,H+14,'#C9C2DD','#C9C2DD',2);
-    const q=P(-8,D/2,H+6);
+    // a big grocery store: a glass shop front under a green striped awning, a cart sign, and the giant apple on the roof
+    const W=58, D=62, H=64;
+    const aw=(y,a)=>{ let t=''; for(let i=0;i<12;i++) t+=`<path d="M${4+i*9},${y} h9 v6 a4.5,4 0 0 1 -9,0 Z" fill="${i%2?'#FFF8EE':a}" ${SW} stroke-width="2"/>`; return t; };
+    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,W,0,D,0,H,'#E9E2D4')+mbox(F,-W-2,W+2,-2,D+2,H,H+5,'#D8D0C0');
+    let up=''; for(let x=8;x<2*W-8;x+=15) up+=mwin(x,-58,10,11);
+    s+=mface(F,-W,0,mbase(2*W,'#E9E2D4',5)+`<rect x="0" y="-${H}" width="${2*W}" height="5" fill="#3FA34D"/>`+up
+      +mwin(6,-30,46,25,3)+mwin(70,-30,40,25,3)+mdoor(53,16,26,'#D7F0FF')+aw(-38,'#3FA34D'));
+    s+=mside(F,nearLow?-W:W,0,mbase(D,'#E9E2D4',5)+msideWins(D,H,[-58,-30]));
+    s+=mbox(F,W-30,W-12,D-26,D-8,H+5,H+13,'#C9C2DD','#C9C2DD',2)+mbox(F,-W+10,-W+24,D-22,D-8,H+5,H+11,'#C9C2DD','#C9C2DD',2);
+    { const [X,Y]=P(-W*.55,-3,H-14); s+=msign(X,Y,11,'#3FA34D',IC_CART); }
+    const q=P(-8,D/2,H+5);
     top=`<g transform="translate(${q[0].toFixed(1)} ${q[1].toFixed(1)}) scale(.55)">${ITEMS.apple.art}</g>`;
-    return {s:s+top,h:H+64,W,D};
+    return {s:s+top,h:H+58,W,D};
   }
   // a family home: a two-storey main part with a tiled roof, chimney and shutters, plus a lower garage wing
   const p=HOMES[c%HOMES.length], W=31, D=54, H=40, g=Math.round(W*.3);
@@ -2028,7 +2030,7 @@ const MBACK=mRep(-100,-130,18), MSIDE_A=mRep(100,130,18), MHX=mRep(-250,-230,10)
 const MFA=mRep(-480,-230,8), MFB=MMX.slice(1), MPK=[-480,-60,60,560];
 // Blocks taken by the big set pieces (mall + car park, café, restaurant, hospital): [a0,a1,b0,b1] between road centres.
 const MRES=[[-14,230,-360,-100],[-14,100,-100,14],[-250,-60,-230,-100],[360,490,60,334],MPK];
-const MGRASS='#8BCB5B', MROADC='#9D9AAD', MPAV='#ECE4D3';
+const MGRASS='#97C463', MROADC='#8E9099', MPAV='#D8D5CC';
 // The part of the map's viewBox that is on screen (the map is letterboxed with "meet", so a tall screen shows more above and below).
 let MV=[0,0,1440,1000];
 function mView(){ const w=innerWidth||1440, h=innerHeight||1000, k=Math.min(w/1440,h/1000); MV=[720-w/k/2,500-h/k/2,720+w/k/2,500+h/k/2]; }
@@ -2075,6 +2077,10 @@ function mGround(){
   for(const a of MFA.slice(0,3)) z+=zH(37,MROAD,a+18);
   for(const b of MFB.slice(0,3)) z+=zM(-37,MROAD,b-26);
   s+=`<path d="${z}" fill="#FFF8EE"/>`;
+  // thin yellow dashes down the middle of the side streets
+  let dl=''; for(const h of H) if(h.w<30) dl+=`M${gp(h.f,h.b).map(f1).join(',')} L${gp(h.t,h.b).map(f1).join(',')} `;
+  for(const m of M) if(m.w<30) dl+=`M${gp(m.a,m.f).map(f1).join(',')} L${gp(m.a,m.t).map(f1).join(',')} `;
+  s+=`<path d="${dl}" stroke="#F4D35E" stroke-width="1.6" stroke-dasharray="9 9"/>`;
   return s;
 }
 // A little house for the filler blocks: walls, a tiled gable roof, windows front and side, a door and maybe a chimney.
@@ -2109,23 +2115,26 @@ function mBlocks(){
     const ca=(a0+a1)/2, cb=(b0+b1)/2; if(MRES.some(r=>ca>r[0]&&ca<r[1]&&cb>r[2]&&cb<r[3])) return;
     a0+=10; a1-=10; b0+=10; b1-=10; if(a1-a0<20||b1-b0<20) return;
     if(!mSeen([gp(a0,b0),gp(a1,b0),gp(a0,b1),gp(a1,b1)])) return;
-    const [, yF]=gp(a0,b1), F=HF(0,0), h=hash(i,j), kind=i>=60?'houses':dist<2.6?(h%5<3?'houses':'park'):(h%6<4?'tower':'park');
+    const [, yF]=gp(a0,b1), F=HF(0,0), h=hash(i,j), kind=i>=60?'houses':dist<2.6?(h%5<4?'houses':'park'):(h%6<4?'tower':'park');
     let s='';
     if(kind==='park'){
-      s+=gRect(a0,a1,b0,b1,'#6CCB4E',`${SW} stroke-width="3"`);
+      s+=gRect(a0,a1,b0,b1,'#7DBF52',`${SW} stroke-width="3"`);
       const am=(a0+a1)/2, bm=(b0+b1)/2;
       s+=`<path d="M${gp(a0,bm).join(',')} L${gp(a1,bm).join(',')} M${gp(am,b0).join(',')} L${gp(am,b1).join(',')}" stroke="#F3D19C" stroke-width="5" stroke-linecap="round"/>`;
-      for(let k=0;k<4;k++){ const ta=a0+(a1-a0)*(.22+.56*(k%2)), tb=b0+(b1-b0)*(.22+.56*(k>>1)), [X,Y]=gp(ta,tb); s+=mtree(X,Y,10+(h>>>k)%5,k%2?'#4CAF5E':'#5DBB63'); }
+      for(let k=0;k<4;k++){ const ta=a0+(a1-a0)*(.22+.56*(k%2)), tb=b0+(b1-b0)*(.22+.56*(k>>1)), [X,Y]=gp(ta,tb); s+=mtree(X,Y,10+(h>>>k)%5,k%2?'#4E9B3F':'#62AE47'); }
     } else if(kind==='houses'){
-      const n=Math.max(1,Math.floor((a1-a0)/56)); const cols=['#FF9EC4','#A6DCCB','#FFE7A0','#CFC2F2','#FFD9CC','#C8E6FA','#E9665A','#8FB8E8'], roofs=['#5A4FA0','#6E6A88','#E8664F','#4CB8D8','#6E6A88'];
+      // roomy family houses on their own lawns: slate or brick-red roofs, a tree and sometimes a car on the drive
+      const n=Math.max(1,Math.floor((a1-a0)/74)); const cols=['#8FB3E0','#F2D06B','#C9543F','#F4EFE6','#B8D3EE','#E8D5B0','#BFD3A0','#F0B9A0'], roofs=['#5E6472','#4F5563','#6B6F7C','#B5533C','#5E6472','#7A5545'];
       // deep blocks get two rows of houses, back row first
-      const rows=Math.max(1,Math.round((b1-b0)/95)), bh=(b1-b0)/rows;
-      for(let r=0;r<rows;r++){ const rb0=b0+r*bh, rb1=rb0+bh, bm=(rb0+rb1)/2;
-        for(let k=0;k<n;k++){ const hk=h>>>(k+r*3), u0=a0+k*(a1-a0)/n+5, u1=a0+(k+1)*(a1-a0)/n-5;
-          s+=mHouse(F,u0,u1,-rb1+4,-Math.max(bm,rb1-62)+2,cols[(h+k+r*3)%cols.length],roofs[(hk>>>3)%roofs.length],hk);
-          const [X,Y]=gp((u0+u1)/2+(hk%2?10:-10),Math.max(bm,rb1-62)-14); s+=mtree(X,Y,9+hk%3); } }
+      const rows=Math.max(1,Math.round((b1-b0)/110)), bh=(b1-b0)/rows;
+      for(let r=0;r<rows;r++){ const rb0=b0+r*bh, rb1=rb0+bh, bm=(rb0+rb1)/2, wf=Math.max(bm,rb1-70)-4;
+        for(let k=0;k<n;k++){ const hk=h>>>(k+r*3), c0=a0+k*(a1-a0)/n, c1=a0+(k+1)*(a1-a0)/n, u0=c0+8, u1=c1-(hk%3===0?24:12);
+          if(wf-rb0>24){ const [X,Y]=gp(c0+(c1-c0)*(hk%4<2?.3:.7),rb0+14); s+=mtree(X,Y,11+hk%3,hk%2?'#4E9B3F':'#62AE47'); }
+          s+=mHouse(F,u0,u1,-rb1+6,-wf,cols[(h+k+r*3)%cols.length],roofs[(hk>>>3)%roofs.length],hk);
+          if(hk%3===0){ s+=mpoly([fp(F,c1-21,-rb1),fp(F,c1-7,-rb1),fp(F,c1-7,-rb1+44),fp(F,c1-21,-rb1+44)],'#C9C6BE',0)+mcar(F,c1-14,-rb1+24,MCARC[hk%MCARC.length],true); }
+          const [X,Y]=gp(c0+(hk%2?6:(c1-c0)*.5),rb1-8); s+=mtree(X,Y,10+hk%4); } }
     } else {
-      const cols=['#EADBC4','#D97A5C','#F2E6D3','#C8DAEE','#E3B98F','#D6CFF5'], H=Math.min(170,60+Math.max(0,dist-2)*22+h%40);
+      const cols=['#EADBC4','#C2694F','#F2E6D3','#C8DAEE','#E3B98F','#D9D4CC'], H=Math.min(140,56+Math.max(0,dist-2)*18+h%36);
       const am=(a0+a1)/2, parts=a1-a0>90?[[a0,am-6],[am+6,a1]]:[[a0,a1]];
       parts.forEach(([u0,u1],k)=>{ s+=mTower(F,u0,u1,-b1,-b0,Math.round(H*(k?.72:1)),cols[(h+k*2)%cols.length],h>>>k); });
     }
@@ -2337,7 +2346,7 @@ function mPark(){
   for(const [a,b] of [[-335,90],[-160,318],[-392,250]]) put(a,b,mbench(HFp,a,-b));
   for(const [a,b] of [[-250,90],[-383,265],[-118,250],[-215,326],[-75,85],[-470,75]]){ const [X,Y]=gp(a,b); put(a,b,mlamp(X,Y)); }
   const T=[[-420,85],[-370,95],[-215,82],[-95,160],[-100,215],[-88,375],[-120,398],[-238,345],[-236,382],[-440,330],[-410,380],[-445,432],[-402,470],[-440,520],[-355,482],[-310,505],[-288,462],[-420,112],[-380,300],[-140,160],[-160,250],[-110,120],[-75,520],[-210,540],[-150,545]];
-  T.forEach(([a,b],i)=>{ const [X,Y]=gp(a,b); put(a,b,mtree(X,Y,11+i%4,i%3?'#4CAF5E':'#5DBB63')); });
+  T.forEach(([a,b],i)=>{ const [X,Y]=gp(a,b); put(a,b,mtree(X,Y,11+i%4,i%3?'#4E9B3F':'#62AE47')); });
   return out;
 }
 const mLotF=i=>mFrame(lotX(i));
@@ -2366,27 +2375,36 @@ function mFigs(){
   }
   return out;
 }
+// The map's scenery is drawn with thin, soft outlines (like a little model town), unlike the bold ink of the street.
+const MINK='#3A3552', mSoft=s=>s.replace(/stroke="#2E2A4F"((?: stroke-opacity="[^"]*")?)(?: stroke-width="([\d.]+)")?/g,(m,o,w)=>`stroke="${MINK}"${o||' stroke-opacity=".55"'} stroke-width="${(+(w||1)*.4).toFixed(2)}"`);
+// The map opens zoomed in (MZ) on where you are; drag to look around. mT is the zoom group's translation.
+const MZ=1.35; let mT=[0,0], MV1=[0,0,1440,1000];
+function mPanTo(tx,ty){
+  // keep the zoomed view inside what drawMap() drew (the area the whole map covers at zoom 1)
+  mT=[clamp(tx,MV1[2]*(1-MZ),MV1[0]*(1-MZ)),clamp(ty,MV1[3]*(1-MZ),MV1[1]*(1-MZ))];
+  const g=document.getElementById('mZoom'); if(g) g.setAttribute('transform',`matrix(${MZ} 0 0 ${MZ} ${mT[0].toFixed(1)} ${mT[1].toFixed(1)})`);
+}
 function drawMap(){
   const night=!!S.night; MWIN=night?'#FFE48A':'#BFE6FF'; MLAMP=night?'#FFE48A':'#FFF8EE'; MGLOW=[];
   let s='';
   // ground all the way to the edges of the screen (a tall screen shows more of the town above and below)
   mView(); s+=`<rect x="${MV[0]-10}" y="${MV[1]-10}" width="${MV[2]-MV[0]+20}" height="${MV[3]-MV[1]+20}" fill="${MGRASS}"/>`;
-  s+=mGround()+mParkGround();
+  MV1=MV.slice(); s+=mSoft(mGround()+mParkGround());
   // everything that stands up, sorted back to front
-  const L=[...mBlocks(),...mSets()];
+  const L=[...mBlocks(),...mSets()].map(o=>({y:o.y,s:mSoft(o.s)}));
   for(let i=0;i<NLOTS;i++){
     const F=mLotF(i), b=i===HONEY_LOT?{id:'honey',type:'honey',c:0}:S.blds.find(b=>b.lot===i);
     const y=fp(F,0,0)[1]+(mStreet(lotX(i))==='h'?14:-14);
-    if(b){ const r=mBld(b.type,b.c,F); L.push({y,s:`<g data-mb="${b.id}" class="hot">${mHull(F,-r.W,r.W,0,r.D,r.h)}${r.s}</g>`}); }
+    if(b){ const r=mBld(b.type,b.c,F); L.push({y,s:`<g data-mb="${b.id}" class="hot">${mHull(F,-r.W,r.W,0,r.D,r.h)}${mSoft(r.s)}</g>`}); }
     else L.push({y,s:`<g data-ml="${i}" class="hot">${mHull(F,-28,28,0,40,60)}<path d="${pth([fp(F,-26,0),fp(F,26,0),fp(F,26,40),fp(F,-26,40)])}" fill="#C98A52" ${SW} stroke-width="3" stroke-dasharray="8 6"/>
 <g class="lotplus"><circle cx="${fp(F,0,20)[0].toFixed(1)}" cy="${(fp(F,0,20)[1]-24).toFixed(1)}" r="17" fill="#FFD15C" ${SW} stroke-width="3.5"/><path d="M${fp(F,0,20)[0].toFixed(1)},${(fp(F,0,20)[1]-33).toFixed(1)} v18 M${(fp(F,0,20)[0]-9).toFixed(1)},${(fp(F,0,20)[1]-24).toFixed(1)} h18" ${SW} stroke-width="5" stroke-linecap="round"/></g></g>`});
   }
-  for(const Lm of LMS){ const F=mFrame(Lm.x), r=mBld(Lm.id,0,F); L.push({y:fp(F,0,0)[1],s:`<g data-mb="${Lm.id}" class="hot">${mHull(F,-r.W,r.W,0,r.D,r.h)}${r.s}</g>`}); }
+  for(const Lm of LMS){ const F=mFrame(Lm.x), r=mBld(Lm.id,0,F); L.push({y:fp(F,0,0)[1],s:`<g data-mb="${Lm.id}" class="hot">${mHull(F,-r.W,r.W,0,r.D,r.h)}${mSoft(r.s)}</g>`}); }
   // street trees and lamps on the pavement, between the lots
-  for(const x of [...TREEX,...BENCHX.map(x=>x+40)]){ const F=mFrame(x), [X,Y]=fp(F,0,-6); L.push({y:Y,s:mtree(X,Y,11)}); }
+  for(const x of [...TREEX,...BENCHX.map(x=>x+40)]){ const F=mFrame(x), [X,Y]=fp(F,0,-6); L.push({y:Y,s:mSoft(mtree(X,Y,11))}); }
   // lamp posts on both pavements of the two big streets
-  for(const x of [...LAMPX,600,1500,2400,3300,4300,4900,6100,7000]){ const F=mFrame(x), w=LAMPX.includes(x)?-9:-66, [X,Y]=fp(F,0,w); L.push({y:Y,s:mlamp(X,Y)}); }
-  L.push(...mPark(), ...mFigs());
+  for(const x of [...LAMPX,600,1500,2400,3300,4300,4900,6100,7000]){ const F=mFrame(x), w=LAMPX.includes(x)?-9:-66, [X,Y]=fp(F,0,w); L.push({y:Y,s:mSoft(mlamp(X,Y))}); }
+  L.push(...mPark().map(o=>({y:o.y,s:mSoft(o.s)})), ...mFigs());
   L.sort((p,q)=>p.y-q.y);
   s+=L.map(o=>o.s).join('');
   s+=`<g id="mCars" pointer-events="none">${CARS.map(c=>`<g id="mcar${c.i}"></g>`).join('')}</g>`;
@@ -2398,7 +2416,9 @@ function drawMap(){
   if(bid){ const F=mFrame(bldX(bid)), r=mBld(bid==='honey'?'honey':LM[bid]?bid:(S.blds.find(b=>b.id===bid)||{}).type||'home',0,F); [hx,hy]=fp(F,0,r.D/2,r.h+10); }
   else { const x=clamp(viewCX(),0,TW), t=(x-3860)*MK; [hx,hy]=x<3860?gp(t-MG,6):gp(-6,t+MG); }
   s+=`<g pointer-events="none" transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)})"><g class="mpin"><path d="M0,0 C-6,-10 -16,-18 -16,-30 A16,16 0 0 1 16,-30 C16,-18 6,-10 0,0 Z" fill="#FF7A5C" ${SW} stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="-30" r="6" fill="#FFF8EE" ${SW} stroke-width="3"/></g></g>`;
-  $('#mapSvg').innerHTML=s;
+  $('#mapSvg').innerHTML=`<g id="mZoom">${s}</g>`;
+  // open on the middle of town: the crossroads, the park and the big buildings around them
+  { const [fx,fy]=gp(-120,100); mPanTo(720-MZ*fx,500-MZ*fy); }
   mCarKey={}; stepMap();
 }
 let mCarKey={};
@@ -2407,7 +2427,7 @@ function stepMap(){
     const el=document.getElementById('mcar'+c.i); if(!el) continue;
     if(c.x<-60||c.x>TW+60){ el.setAttribute('display','none'); continue; }
     const [a,b,st]=mCarPos(c), key=st+c.dir;
-    if(mCarKey[c.i]!==key){ mCarKey[c.i]=key; el.innerHTML=mCarArt(c,st); }
+    if(mCarKey[c.i]!==key){ mCarKey[c.i]=key; el.innerHTML=mSoft(mCarArt(c,st)); }
     const [X,Y]=gp(a,b), [X0,Y0]=gp(0,0);
     el.removeAttribute('display'); el.setAttribute('transform',`translate(${(X-X0).toFixed(1)} ${(Y-Y0).toFixed(1)})`);
   }
@@ -2420,10 +2440,26 @@ function openMap(){
 }
 function closeMap(){ mapOn=false; $('#map').hidden=true; $('#mapSvg').innerHTML=''; }
 // Tapping the map: a building takes you inside, an empty lot opens the builder there, anywhere else drops you on the street.
+// Dragging the map looks around (with a little glide); a drag is never a tap.
+let mDrag=null, mVel=null;
+function mapDown(ev){ if(mDrag&&mDrag.id!==ev.pointerId) return; const m=$('#mapSvg').getScreenCTM(); mDrag={id:ev.pointerId,x:ev.clientX,y:ev.clientY,t:mT.slice(),k:m?m.a:1,moved:false,lx:ev.clientX,ly:ev.clientY,lt:performance.now(),v:[0,0]}; mVel=null; }
+function mapMove(ev){
+  const d=mDrag; if(!d||d.id!==ev.pointerId) return;
+  const dx=ev.clientX-d.x, dy=ev.clientY-d.y; if(!d.moved&&Math.hypot(dx,dy)<10) return;
+  d.moved=true; mPanTo(d.t[0]+dx/d.k,d.t[1]+dy/d.k);
+  const now=performance.now(), dt=Math.max(1,now-d.lt); d.v=[(ev.clientX-d.lx)/d.k/dt,(ev.clientY-d.ly)/d.k/dt]; d.lx=ev.clientX; d.ly=ev.clientY; d.lt=now;
+}
+function mapUp(ev){
+  const d=mDrag; if(!d||d.id!==ev.pointerId) return; mDrag=null;
+  if(!d.moved) return;
+  mapUp.skip=true; setTimeout(()=>{ mapUp.skip=false; },0);
+  if(performance.now()-d.lt<80){ mVel=d.v; let lt=performance.now(); const glide=now=>{ if(!mVel||!mapOn) return; const dt=now-lt; lt=now; mPanTo(mT[0]+mVel[0]*dt,mT[1]+mVel[1]*dt); const f=Math.pow(.994,dt); mVel=[mVel[0]*f,mVel[1]*f]; if(Math.hypot(...mVel)>.02) requestAnimationFrame(glide); else mVel=null; }; requestAnimationFrame(glide); }
+}
 function mapTap(ev){
+  if(mapUp.skip) return;
   const bEl=ev.target.closest('[data-mb]'), lEl=ev.target.closest('[data-ml]');
   if(bEl){ const bid=bEl.dataset.mb; closeMap(); A.knock(); switchRoom(roomFor(bid)); return; }
-  const svgM=$('#mapSvg'), m=svgM.getScreenCTM(); if(!m) return;
+  const m=$('#mZoom').getScreenCTM(); if(!m) return;
   let x;
   if(lEl) x=lotX(+lEl.dataset.ml);
   else { const pt=new DOMPoint(ev.clientX,ev.clientY).matrixTransform(m.inverse()), [a,b]=gInv(pt.x,pt.y); x=pt.x<MOX?(a+MG)/MK+3860:(b-MG)/MK+3860; }
@@ -3074,6 +3110,10 @@ $('#bSound').addEventListener('click',ev=>{ A.init(); const b=ev.currentTarget; 
 $('#bMap').addEventListener('click',()=>{ A.init(); openMap(); });
 $('#bMapClose').addEventListener('click',()=>{ closeMap(); A.whoosh(); });
 $('#mapSvg').addEventListener('click',mapTap);
+$('#mapSvg').addEventListener('pointerdown',mapDown);
+addEventListener('pointermove',mapMove);
+addEventListener('pointerup',mapUp);
+addEventListener('pointercancel',ev=>{ if(mDrag&&mDrag.id===ev.pointerId) mDrag=null; });
 $('#bReset').addEventListener('click',()=>{ $('#confirm').hidden=false; });
 $('#cNo').addEventListener('click',()=>{ $('#confirm').hidden=true; });
 $('#confirm').addEventListener('click',ev=>{ if(ev.target.id==='confirm') $('#confirm').hidden=true; });

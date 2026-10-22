@@ -266,6 +266,19 @@ test('the town map shows every building and takes you where you tap', async ({ p
   await expect(page.locator('#map')).toBeHidden();
 });
 
+test('the town map opens zoomed in and can be dragged to look around', async ({ page }) => {
+  await page.getByRole('button', { name: 'Town map' }).click();
+  await expect(page.locator('#map')).toBeVisible();
+  await page.waitForTimeout(400);
+  const tf = () => page.locator('#mZoom').getAttribute('transform');
+  const before = await tf();
+  expect(before).toMatch(/^matrix\(1\.35 /);
+  // a drag pans the map and is not taken as a tap (the map stays open)
+  await dragTo(page, { x: 500, y: 400 }, { x: 700, y: 500 });
+  await expect(page.locator('#map')).toBeVisible();
+  expect(await tf()).not.toBe(before);
+});
+
 test('the town map fills a tall screen with town (no sky gap at the top)', async ({ page }) => {
   await page.setViewportSize({ width: 700, height: 1000 });
   await page.getByRole('button', { name: 'Town map' }).click();
