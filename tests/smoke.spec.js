@@ -269,6 +269,9 @@ test('the town map shows every building and takes you where you tap', async ({ p
   expect(await page.locator('#mapSvg [data-ml]').count()).toBe(9);
   // the set pieces around the streets: mall + car park, café, restaurant, hospital and the park
   for (const id of ['mall', 'cafe', 'restaurant', 'hospital', 'park']) await expect(page.locator(`#mapSvg [data-mset="${id}"]`)).toHaveCount(1);
+  // the street's cars plus extra traffic on the side streets, all drawn among the buildings
+  await expect(page.locator('#mL > [id^="mcar"]')).toHaveCount(6);
+  expect(await page.locator('#mL > [id^="mt"]').count()).toBeGreaterThan(10);
   await page.waitForTimeout(400); // let the map finish popping in
   await page.locator('#mapSvg [data-mb="library"]').click();
   await expect(page.locator('#map')).toBeHidden();
