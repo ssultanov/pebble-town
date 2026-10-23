@@ -29,8 +29,26 @@ test.beforeEach(async ({ page }) => {
   await page.reload();
   await page.getByRole('button', { name: 'Play' }).click();
   await expect(page.locator('#splash')).toBeHidden();
+  // Play lands on the town map (the main page); close it to play on the street
+  await expect(page.locator('#map')).toBeVisible();
+  await page.getByRole('button', { name: 'Close map' }).click();
+  await expect(page.locator('#map')).toBeHidden();
 });
 test.afterEach(() => { if (errors) expect(errors, 'page errors').toEqual([]); });
+
+test('Play lands on the town map, the main page', async ({ page }) => {
+  await page.reload();
+  await page.getByRole('button', { name: 'Play' }).click();
+  await expect(page.locator('#splash')).toBeHidden();
+  await expect(page.locator('#map')).toBeVisible();
+  // the named buildings from the reference town are on it
+  const labels = await page.locator('#mapSvg text').allTextContents();
+  for (const name of ['SHOPPING', 'MALL', 'HOSPITAL', 'LIBRARY', 'SCHOOL', 'GROCERY', 'COFFEE', 'RESTAURANT'])
+    expect(labels).toContain(name);
+  await page.getByRole('button', { name: 'Close map' }).click();
+  await expect(page.locator('#map')).toBeHidden();
+  expect(await page.evaluate(() => window.__pt.S.room)).toBe('town');
+});
 
 test('the game starts in town with the hammer and hat', async ({ page }) => {
   expect(await page.evaluate(() => window.__pt.S.room)).toBe('town');
@@ -76,6 +94,7 @@ test('the hammer builds a house that can be entered and is saved', async ({ page
   await page.reload();
   expect(await page.evaluate(() => [window.__pt.S.room, window.__pt.S.blds.length])).toEqual([b.id, 1]);
   await page.getByRole('button', { name: 'Play' }).click();
+  await page.getByRole('button', { name: 'Close map' }).click();
   await page.locator('#bBack').click();
   await expect.poll(() => page.evaluate(() => window.__pt.S.room)).toBe('town');
 });
