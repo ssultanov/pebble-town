@@ -1928,13 +1928,20 @@ function mHull(F,u0,u1,w0,w1,h){ // tappable outline around a building (a bit bi
 }
 const mShadow=(F,u0,u1,w0,w1)=>`<path d="${pth([fp(F,u0,w0),fp(F,u1+8,w0),fp(F,u1+8,w1+10),fp(F,u0,w1+10)])}" fill="${K}" opacity=".12"/>`;
 function mtree(X,Y,r=13,c='#4E9B3F'){
-  return `<ellipse cx="${(X+5).toFixed(1)}" cy="${Y.toFixed(1)}" rx="${(r*1.1).toFixed(1)}" ry="${(r*.42).toFixed(1)}" fill="${K}" opacity=".15"/>
-<rect x="${(X-3).toFixed(1)}" y="${(Y-r*1.1).toFixed(1)}" width="6" height="${(r*1.1).toFixed(1)}" fill="#8B5E3C" ${SW} stroke-width="2.5"/>
-<circle cx="${X.toFixed(1)}" cy="${(Y-r*1.6).toFixed(1)}" r="${r}" fill="${shade(c,.85)}" ${SW} stroke-width="3"/><circle cx="${(X-r*.25).toFixed(1)}" cy="${(Y-r*1.75).toFixed(1)}" r="${(r*.62).toFixed(1)}" fill="${c}"/>`;
+  // A leafy crown built like the reference trees: overlapping round puffs — a dark bumpy silhouette,
+  // mid-green body, bright highlights on top and a few sparkle dots for leaf texture. No ink outline.
+  const dk=shade(c,.68), lt=shade(c,1.33), sp=shade(c,1.5), cy=Y-r*1.5;
+  const C=(dx,dy,rr,f)=>`<circle cx="${(X+dx*r).toFixed(1)}" cy="${(cy+dy*r).toFixed(1)}" r="${(rr*r).toFixed(1)}" fill="${f}"/>`;
+  return `<ellipse cx="${(X+5).toFixed(1)}" cy="${Y.toFixed(1)}" rx="${(r*1.15).toFixed(1)}" ry="${(r*.44).toFixed(1)}" fill="${K}" opacity=".15"/>
+<path d="M${(X-2.6).toFixed(1)},${Y} h5.2 l-1,-${(r*.85).toFixed(1)} h-3.2 Z" fill="#8B5E3C"/>
+${C(0,.2,1.02,dk)+C(-.58,.02,.72,dk)+C(.58,.02,.72,dk)+C(-.3,-.38,.7,dk)+C(.32,-.4,.68,dk)+C(0,-.58,.66,dk)}
+${C(0,0,.92,c)+C(-.44,-.2,.64,c)+C(.44,-.18,.62,c)+C(-.05,-.48,.58,c)}
+${C(-.3,-.52,.4,lt)+C(.14,-.64,.32,lt)+C(-.6,-.3,.26,lt)}
+${C(-.12,-.34,.09,sp)+C(.34,-.44,.08,sp)+C(-.48,-.58,.07,sp)}`;
 }
 // The street buildings, seen from above. Sizes are map pixels; F is centred on the lot, the front wall is at w=0.
 // Parts are drawn far-to-near along the street (nearU tells which end of the street is closer to us).
-const mbush=(F,u,w,r=6)=>{ const [X,Y]=fp(F,u,w); return `<circle cx="${X.toFixed(1)}" cy="${(Y-r*.7).toFixed(1)}" r="${r}" fill="#3F8A3A" ${SW} stroke-width="2.5"/><circle cx="${(X-r*.3).toFixed(1)}" cy="${(Y-r).toFixed(1)}" r="${(r*.55).toFixed(1)}" fill="#62AE47"/>`; };
+const mbush=(F,u,w,r=6)=>{ const [X,Y]=fp(F,u,w); return `<circle cx="${X.toFixed(1)}" cy="${(Y-r*.7).toFixed(1)}" r="${r}" fill="#3F8A3A" ${SW} stroke-width="2.5"/><circle cx="${(X-r*.3).toFixed(1)}" cy="${(Y-r).toFixed(1)}" r="${(r*.55).toFixed(1)}" fill="#62AE47"/><circle cx="${(X-r*.48).toFixed(1)}" cy="${(Y-r*1.18).toFixed(1)}" r="${(r*.26).toFixed(1)}" fill="#7CC95F"/>`; };
 const mshut=(x,y,w,h,c)=>`<rect x="${x-4}" y="${y}" width="3.5" height="${h}" fill="${c}" ${SW} stroke-width="1.5"/><rect x="${x+w+.5}" y="${y}" width="3.5" height="${h}" fill="${c}" ${SW} stroke-width="1.5"/>`;
 const mbase=(len,c,h=4)=>`<rect x="0" y="${-h}" width="${len}" height="${h}" fill="${shade(c,.8)}"/>`;
 const msideWins=(dep,H,rows)=>{ let t=''; for(const y of rows) for(let x=8;x<dep-12;x+=16) t+=mwin(x,y,9,9); return t; };
