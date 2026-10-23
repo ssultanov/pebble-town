@@ -1956,10 +1956,48 @@ function mHull(F,u0,u1,w0,w1,h){ // tappable outline around a building (a bit bi
   return `<path d="${pth(chull(pts))}" fill="transparent"/>`;
 }
 const mShadow=(F,u0,u1,w0,w1)=>`<path d="${pth([fp(F,u0,w0),fp(F,u1+8,w0),fp(F,u1+8,w1+10),fp(F,u0,w1+10)])}" fill="${K}" opacity=".12"/>`;
+// A leafy clump: a ring of uneven points joined by outward bulges, so the edge is lumpy like foliage, never a circle.
+function mclump(cx,cy,rx,ry,n,rnd,fill,ink=''){
+  const p=[]; for(let i=0;i<n;i++){ const t=(i+rnd()*.5)/n*Math.PI*2, k=.84+rnd()*.26; p.push([cx+Math.cos(t)*rx*k,cy+Math.sin(t)*ry*k]); }
+  let d=`M${((p[0][0]+p[n-1][0])/2).toFixed(1)},${((p[0][1]+p[n-1][1])/2).toFixed(1)}`;
+  for(let i=0;i<n;i++){ const a=p[i], b=p[(i+1)%n], b2=.28+rnd()*.14;
+    d+=` Q${(a[0]+(a[0]-cx)*b2).toFixed(1)},${(a[1]+(a[1]-cy)*b2).toFixed(1)} ${((a[0]+b[0])/2).toFixed(1)},${((a[1]+b[1])/2).toFixed(1)}`; }
+  return `<path d="${d} Z" fill="${fill}"${ink?` ${SW} stroke-width="${ink}" stroke-linejoin="round"`:''}/>`;
+}
+// A map tree, seeded by where it stands so each one is a little different: mostly broadleaf trees with a lumpy,
+// shaded crown (dark underneath, sunlit top-left) on a tapering trunk, and now and then a conifer.
 function mtree(X,Y,r=13,c='#4E9B3F'){
-  return `<ellipse cx="${(X+5).toFixed(1)}" cy="${Y.toFixed(1)}" rx="${(r*1.1).toFixed(1)}" ry="${(r*.42).toFixed(1)}" fill="${K}" opacity=".15"/>
-<rect x="${(X-3).toFixed(1)}" y="${(Y-r*1.1).toFixed(1)}" width="6" height="${(r*1.1).toFixed(1)}" fill="#8B5E3C" ${SW} stroke-width="2.5"/>
-<circle cx="${X.toFixed(1)}" cy="${(Y-r*1.6).toFixed(1)}" r="${r}" fill="${shade(c,.85)}" ${SW} stroke-width="3"/><circle cx="${(X-r*.25).toFixed(1)}" cy="${(Y-r*1.75).toFixed(1)}" r="${(r*.62).toFixed(1)}" fill="${c}"/>`;
+  let h=(Math.round(X*7.3)*73856093^Math.round(Y*3.1)*19349663)>>>0;
+  const rnd=()=>(h=(h*1103515245+12345)>>>0,(h>>>8)/16777216), F=v=>v.toFixed(1);
+  const sh=`<g opacity=".15">${mclump(X+r*.5,Y,r*1.15,r*.42,8,rnd,K)}</g>`;
+  if(rnd()<.22){
+    // conifer: four tiers with drooping branch tips, the right side in shade
+    const g=shade(c,.7), lit=shade(c,.9), dk=shade(c,.55), H=r*(2.9+rnd()*.5), top=Y-r*.5-H;
+    let s=sh+`<path d="M${F(X-1.8)},${F(Y)} L${F(X-1.2)},${F(Y-r*.7)} H${F(X+1.2)} L${F(X+1.8)},${F(Y)} Z" fill="#6E4A2F" ${SW} stroke-width="2"/>`;
+    for(let t=0;t<4;t++){
+      const f=t/4, yb=Y-r*.4-H*f*.78, yt=t==3?top:yb-H*.42, w=r*(1.05-f*.7), n=5, e=[];
+      for(let k=0;k<=n;k++){ const u=k/n, x=X-w+2*w*u, droop=k%2?0:r*.14; e.push([x,yb+droop-Math.sin(u*Math.PI)*r*.12]); }
+      const edge=e.map(p=>`${F(p[0])},${F(p[1])}`).join(' L');
+      s+=`<path d="M${F(X)},${F(yt)} L${edge} Z" fill="${g}" ${SW} stroke-width="2.4" stroke-linejoin="round"/>`;
+      s+=`<path d="M${F(X)},${F(yt+1)} L${F(e[0][0]+1)},${F(e[0][1]-.5)} L${F(e[1][0])},${F(e[1][1]-.5)} L${F(X-w*.15)},${F(yb-r*.1)} Z" fill="${lit}"/>`;
+      s+=`<path d="M${F(X+.5)},${F(yt+2)} L${F(X+w*.2)},${F(yb-r*.05)} L${F(e[n-1][0])},${F(e[n-1][1]-.5)} L${F(e[n][0]-1)},${F(e[n][1]-.5)} Z" fill="${dk}" opacity=".6"/>`;
+    }
+    return s;
+  }
+  // broadleaf: trunk with two branches into the crown
+  const cy=Y-r*1.7, tk=Math.max(2.2,r*.2), lean=(rnd()-.5)*r*.25;
+  let s=sh+`<path d="M${F(X-tk)},${F(Y)} Q${F(X-tk*.6)},${F(Y-r*.6)} ${F(X-tk*.5+lean)},${F(Y-r*1.2)} L${F(X-r*.45+lean)},${F(cy+r*.2)} L${F(X-tk*.1+lean)},${F(Y-r*1.35)} L${F(X+r*.4+lean)},${F(cy+r*.1)} L${F(X+tk*.5+lean)},${F(Y-r*1.2)} Q${F(X+tk*.6)},${F(Y-r*.6)} ${F(X+tk)},${F(Y)} Z" fill="#7A5234" ${SW} stroke-width="2.2" stroke-linejoin="round"/>`;
+  s+=`<path d="M${F(X+tk*.15)},${F(Y-.5)} Q${F(X+tk*.3)},${F(Y-r*.6)} ${F(X+tk*.2+lean)},${F(Y-r*1.15)} L${F(X+tk*.6+lean)},${F(Y-r*1.15)} Q${F(X+tk*.7)},${F(Y-r*.6)} ${F(X+tk*.9)},${F(Y-.5)} Z" fill="#5C3D27"/>`;
+  const tall=rnd(), cx=X+lean, rx=r*(1.15-tall*.25+rnd()*.1), ry=r*(.85+tall*.35);
+  // dark crown with the outline, a few lower clumps hanging off it, then the lit layers
+  s+=mclump(cx,cy,rx,ry,11,rnd,shade(c,.72),2.6);
+  for(let k=0;k<3;k++){ const a=Math.PI*(.15+k*.35); s+=mclump(cx+Math.cos(a)*rx*.55,cy+Math.sin(a)*ry*.45,rx*.42,ry*.38,7,rnd,shade(c,.66)); }
+  s+=mclump(cx-rx*.12,cy-ry*.14,rx*.78,ry*.7,10,rnd,c);
+  for(let k=0;k<3;k++){ const a=Math.PI*(1.05+k*.32+rnd()*.15); s+=mclump(cx+Math.cos(a)*rx*.38,cy+Math.sin(a)*ry*.36,rx*.36,ry*.3,7,rnd,shade(c,1.12)); }
+  s+=mclump(cx-rx*.38,cy-ry*.45,rx*.24,ry*.2,6,rnd,shade(c,1.28));
+  // a couple of dark gaps in the foliage on the shady side
+  for(let k=0;k<2;k++) s+=mclump(cx+rx*(.3+rnd()*.3),cy+ry*(.05+rnd()*.35),r*.16,r*.11,5,rnd,shade(c,.6));
+  return s;
 }
 // The street buildings, seen from above. Sizes are map pixels; F is centred on the lot, the front wall is at w=0.
 // Parts are drawn far-to-near along the street (nearU tells which end of the street is closer to us).
