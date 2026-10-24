@@ -56,11 +56,12 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:4px}
 .tb svg,.rt svg{width:58%;height:58%;display:block}
 .rt[aria-pressed="true"]{box-shadow:0 5px 0 var(--ink),0 0 0 4px var(--frame),0 0 0 8px var(--sun);transform:translateY(-2px)}
 .rt.back{background:var(--coral)}
-.tb[aria-pressed="true"]#bBuild{background:var(--sun);box-shadow:0 5px 0 var(--ink),0 0 0 4px var(--frame),0 0 0 8px var(--sun)}
+.tb[aria-pressed="true"]#bBuild,.tb[aria-pressed="true"]#bMapBuild{background:var(--sun);box-shadow:0 5px 0 var(--ink),0 0 0 4px var(--frame),0 0 0 8px var(--sun)}
 #map{position:fixed;inset:0;z-index:15;background:#97C463;animation:mapIn .32s ease-out}
 #mapSvg{width:100%;height:100%;display:block;touch-action:none;overflow:visible}
 #mapSvg .hot{cursor:pointer}
 #bMapClose{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 16px);background:var(--coral)}
+#bMapBuild{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 30px + var(--btn))}
 #mapSvg .mpin{animation:pinBob .55s ease-in-out infinite alternate}
 @keyframes pinBob{from{transform:translateY(0)}to{transform:translateY(-12px)}}
 @keyframes mapIn{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:none}}
@@ -70,6 +71,10 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:4px}
 .tb.muted .w{display:none}
 body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:beckon .7s ease-in-out infinite alternate}
 @keyframes beckon{from{transform:scale(1)}to{transform:scale(1.1)}}
+.spin{transform-box:fill-box;transform-origin:center;animation:spin 2.4s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#mapSvg .mpop{transform-box:fill-box;transform-origin:50% 100%;animation:mPop .5s ease-out}
+@keyframes mPop{from{transform:scale(.2)}60%{transform:scale(1.12)}to{transform:none}}
 .rt.hover,.tb.hover{animation:none!important;transform:scale(1.28)!important;background:var(--sun)!important}
 
 #rotate{position:fixed;z-index:9;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom,0px) + 16px);background:var(--cream);border:4px solid var(--ink);border-radius:999px;padding:8px 20px;font-weight:800;font-size:18px;white-space:nowrap;pointer-events:none;box-shadow:0 4px 0 var(--ink)}
@@ -105,7 +110,7 @@ body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:
 .box-foot p b{font-family:var(--display)}
 
 .build-card{width:min(860px,100%);max-height:min(620px,100%);display:flex;flex-direction:column;overflow:hidden}
-.build-grid{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:22px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:16px;min-height:0}
+.build-grid{overflow-y:auto;-webkit-overflow-scrolling:touch;touch-action:pan-y;padding:22px 24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:max-content;gap:16px;min-height:0}
 .build-grid .tile{width:100%;height:auto;aspect-ratio:1;background:#BFE6FF}
 .build-grid .tile.raze{background:#FFD9D0}
 .build-foot{border-top:5px solid var(--ink);background:var(--mint);display:flex;justify-content:flex-end;padding:14px 22px}
@@ -133,7 +138,7 @@ body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:
   .dress-left{border-right:0;border-bottom:5px solid var(--ink);flex-direction:row;flex-wrap:wrap;justify-content:center;padding:12px}
   #preview{flex:none;width:110px;height:150px}
 }
-@media (prefers-reduced-motion:reduce){ .tb,.rt,.sw,.tile{transition:none} #world.enter{animation:none} body.dragging .rt,body.dragging-item #bBox,#world .lotplus{animation:none} }
+@media (prefers-reduced-motion:reduce){ .tb,.rt,.sw,.tile{transition:none} #world.enter{animation:none} body.dragging .rt,body.dragging-item #bBox,#world .lotplus,.spin{animation:none} }
 </style>
 </head>
 <body>
@@ -184,6 +189,9 @@ body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:
 
 <div id="map" hidden role="dialog" aria-label="Town map">
   <svg id="mapSvg" viewBox="0 0 1440 1000" preserveAspectRatio="xMidYMid meet"></svg>
+  <button class="tb" id="bMapBuild" type="button" aria-label="Build on the map" aria-pressed="false">
+    <svg viewBox="0 0 48 48"><path d="M11 40 L29 22" stroke="#2E2A4F" stroke-width="11" stroke-linecap="round"/><path d="M11 40 L29 22" stroke="#C98A52" stroke-width="5" stroke-linecap="round"/><path d="M19 15 L28 6 L42 20 L33 29 Z" fill="#C9C2DD" stroke="#2E2A4F" stroke-width="3.5" stroke-linejoin="round"/><path d="M28 6 L33 1 L38 6 L33 11" fill="#8E87AE" stroke="#2E2A4F" stroke-width="3" stroke-linejoin="round"/></svg>
+  </button>
   <button class="tb" id="bMapClose" type="button" aria-label="Close map">
     <svg viewBox="0 0 48 48"><path d="M13 13 L35 35 M35 13 L13 35" stroke="#2E2A4F" stroke-width="7" stroke-linecap="round"/></svg>
   </button>
@@ -735,22 +743,30 @@ const LM={}; for(const l of LMS) LM[l.id]=l;
 const CROSSX=[3860,5525]; // side streets with a zebra crossing and a traffic light
 const TREEX=[60,520,1320,2120,2920,3690,6270,6440,7740], LAMPX=[920,1720,2520,3320,4820,6840,7240], BENCHX=[1320,2920,6355];
 const HYDX=[978,2578,4878,7298], MAILX=[1778,3378,6898], BINX=[578,2178,6500,7682];
-const HOMES=[{w:'#FF9EC4',r:'#5A4FA0',d:'#FFD15C'},{w:'#A6DCCB',r:'#E8664F',d:'#4C6FD8'},{w:'#FFE7A0',r:'#4CB8D8',d:'#FF7A5C'},{w:'#CFC2F2',r:'#FF7A5C',d:'#7ED957'}];
+// Every house option is its own style (st, drawn by HSTY / mHome): w walls, r roof/trim, d door/accent, so the sofa inside.
+const HOMES=[{st:'cottage',w:'#FF9EC4',r:'#5A4FA0',d:'#FFD15C'},
+  {st:'cube',w:'#F4F1EA',r:'#3B3566',d:'#C98A52',so:['#8C86AE','#B5B0D0','#6E688F']},
+  {st:'town',w:'#FFE7A0',r:'#4C6FD8',d:'#FF7A5C'},
+  {st:'aframe',w:'#E3B27A',r:'#3E7D5A',d:'#FF7A5C',so:['#3E9A50','#7ED957','#2F7A3E']},
+  {st:'dome',w:'#F4F1EA',r:'#4CB8D8',d:'#B07CE8',so:['#4CB8D8','#9BE0F2','#3A93AF']},
+  {st:'bungalow',w:'#A6DCCB',r:'#E8664F',d:'#4C6FD8'},
+  {st:'tech',w:'#DDE3EA',r:'#2F3A56',d:'#4CB8D8',so:['#5A4FA0','#8378CC','#463D85']}];
 const SHOPS=[{w:'#FFF8EE',a:'#FF7A5C',s:'#4CB8D8'},{w:'#B5DDF7',a:'#7ED957',s:'#FF7A5C'}];
 const BTYPES={home:HOMES.length,shop:SHOPS.length};
-const BUILD_OPTS=[['home',0],['home',1],['home',2],['home',3],['shop',0],['shop',1]];
+const BUILD_OPTS=[...HOMES.map((_,i)=>['home',i]),['shop',0],['shop',1]];
 const HAMMER=`<path d="M11 40 L29 22" stroke="${K}" stroke-width="11" stroke-linecap="round"/><path d="M11 40 L29 22" stroke="#C98A52" stroke-width="5" stroke-linecap="round"/><path d="M19 15 L28 6 L42 20 L33 29 Z" fill="#C9C2DD" ${SW} stroke-width="3.5" stroke-linejoin="round"/>`;
 
 // Windows that light up at night: [x, y, w, h, rx] in building-local coords.
-function bldWins(type){
+function bldWins(type,c=0){
+  if(type==='home') return HSTY[HOMES[c%HOMES.length].st].wins;
   if(type==='honey') return [[-26,-432,52,52,26],[-130,-310,80,70,8],[50,-310,80,70,8],[-148,-168,90,80,8],[58,-168,90,80,8]];
   if(type==='shop') return [[-130,-200,150,150,10],[55,-152,50,70,6]];
   if(type==='school') return [-260,-150,70,180].flatMap(x=>[[x,-390,80,90,8],[x,-190,80,90,8]]);
   if(type==='library') return [[-170,-370,80,120,40],[-40,-370,80,120,40],[90,-370,80,120,40],[-186,-170,68,110,8],[118,-170,68,110,8]];
   if(type==='market') return [[-220,-170,190,120,10],[-220,-370,280,120,10],[-214,-544,88,88,44],[-104,-544,88,88,44],[6,-544,88,88,44]];
-  return [[-22,-330,44,44,22],[-110,-206,70,70,8],[40,-206,70,70,8]];
+  return [];
 }
-const litWins=type=>bldWins(type).map(([x,y,w,h,r])=>`<rect class="lit" x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#BFE6FF" ${SW} stroke-width="4"/>`).join('');
+const litWins=(type,c)=>bldWins(type,c).map(([x,y,w,h,r])=>`<rect class="lit" x="${x}" y="${y}" width="${w}" height="${h}" rx="${r}" fill="#BFE6FF" ${SW} stroke-width="4"/>`).join('');
 const bars=(x,y,w,h)=>`<path d="M${x+w/2},${y} V${y+h} M${x},${y+h/2} H${x+w}" ${SW} stroke-width="4"/>`;
 // A little fake 3D: every box gets a darker side face (and maybe a top) going "back" along DP (right and up),
 // roofs get a receding slope, and buildings cast a soft shadow on the grass. Drawn before the front so it sits behind.
@@ -783,10 +799,138 @@ function bush(x,y,r,fl){
     +(fl?[[-.6,-.8],[.5,-.7],[0,-1.4]].map(([a,b],i)=>`<circle cx="${(x+a*r).toFixed(1)}" cy="${(y+b*r).toFixed(1)}" r="5" fill="${fl[i%fl.length]}" ${SW} stroke-width="2.5"/>`).join(''):'');
 }
 // Lit windows plus a shadowed inset (so they sit *in* the wall) and a sill under the square ones.
-function wins(type,sill=true){
-  return litWins(type)+bldWins(type).filter(w=>w[4]<20).map(([x,y,w,h])=>`<path d="M${x+3},${y+h-3} V${y+8} Q${x+3},${y+3} ${x+8},${y+3} H${x+w-3} v9 H${x+12} V${y+h-3} Z" fill="${K}" opacity=".2"/>`
+function wins(type,sill=true,c){
+  return litWins(type,c)+bldWins(type,c).filter(w=>w[4]<20).map(([x,y,w,h])=>`<path d="M${x+3},${y+h-3} V${y+8} Q${x+3},${y+3} ${x+8},${y+3} H${x+w-3} v9 H${x+12} V${y+h-3} Z" fill="${K}" opacity=".2"/>`
     +(sill&&h<130?`<rect x="${x-7}" y="${y+h-3}" width="${w+14}" height="11" rx="4" fill="#FFF8EE" ${SW} stroke-width="3.5"/>`:'')).join('');
 }
+// A wall lantern, and a tilted solar panel (bottom edge from x,y, w wide, h tall, leaning sk right, dy rise along a roof).
+const lantern=(x,y)=>`<path d="M${x-11},${y} h22" ${SW} stroke-width="4" stroke-linecap="round"/><rect class="lit" data-day="#FFF1B8" x="${x-7}" y="${y}" width="14" height="20" rx="4" fill="#FFF1B8" ${SW} stroke-width="3.5"/>`;
+function solar(x,y,w,h,sk,dy=0){
+  const m=(a,b)=>[x+w*a+sk*b,y+dy*a-h*b].map(v=>v.toFixed(1)).join(',');
+  return `<path d="M${m(0,0)} L${m(1,0)} L${m(1,1)} L${m(0,1)} Z" fill="#2F4F9A" ${SW} stroke-width="4" stroke-linejoin="round"/><path d="M${m(.5,0)} L${m(.5,1)} M${m(0,.5)} L${m(1,.5)}" stroke="#7CCBFF" stroke-width="2.5"/>`;
+}
+// The house styles on the street. Each has its night windows (like bldWins), where chimney smoke rises (or null) and its art.
+const HSTY={
+  cottage:{wins:[[-22,-330,44,44,22],[-110,-206,70,70,8],[40,-206,70,70,8]],smoke:[85,-410],art:(P,c)=>{
+    const fl=[-104,-76,-48,48,76,104].map((x,i)=>`<circle cx="${x}" cy="${-136}" r="9" fill="${['#FF7A5C','#FFD15C','#FF9EC4'][i%3]}" ${SW} stroke-width="3"/>`).join('');
+    return `<rect x="-172" y="-404" width="344" height="404" fill="transparent"/>
+${gShadow(-140,140)}${side(66,-392,38,90,P.r)}<rect x="66" y="-392" width="38" height="90" fill="${P.r}" ${SW} stroke-width="5"/>${side(58,-404,54,16,P.r,1)}<rect x="58" y="-404" width="54" height="16" rx="5" fill="${P.r}" ${SW} stroke-width="4"/>
+${side(-140,-262,280,262,P.w)}<rect x="-140" y="-262" width="280" height="262" rx="8" fill="${P.w}" ${SW} stroke-width="5"/>${plinth(-136,136,P.w)}
+${roofSide(0,-398,172,-250,P.r)}<path d="M-172,-250 L0,-398 L172,-250 Z" fill="${P.r}" ${SW} stroke-width="5" stroke-linejoin="round"/>${shingles(-398,-250,172,[-355,-270])}
+${shutters(-110,-206,70,70,P.d)}${shutters(40,-206,70,70,P.d)}${wins('home',0,c)}${bars(-110,-206,70,70)}${bars(40,-206,70,70)}
+${fl}<rect x="-116" y="-134" width="80" height="16" rx="5" fill="#8B5E3C" ${SW} stroke-width="4"/><rect x="36" y="-134" width="80" height="16" rx="5" fill="#8B5E3C" ${SW} stroke-width="4"/>
+<path d="M-32,0 V-100 Q-32,-134 0,-134 Q32,-134 32,-100 V0 Z" fill="${P.d}" ${SW} stroke-width="5" stroke-linejoin="round"/><circle cx="19" cy="-56" r="6" fill="${K}"/>
+<path d="M-18,-100 Q-18,-118 0,-118 Q18,-118 18,-100 Z" fill="#BFE6FF" ${SW} stroke-width="3.5"/>${lantern(52,-112)}
+${step(-50,-8,100,14)}${bush(-158,0,20)}${bush(160,0,20,['#FFF8EE','#FF9EC4'])}`;
+  }},
+  // modern: a white box with a wooden upper floor sticking out over a carport, a flat roof with solar panels
+  cube:{wins:[[-132,-136,112,112,4],[-86,-268,156,58,4]],smoke:null,art:(P,c)=>{
+    let sl=''; for(let x=-94;x<160;x+=16) sl+=`M${x},-296 V-164 `;
+    return `<rect x="-190" y="-360" width="380" height="360" fill="transparent"/>
+${gShadow(-150,160)}${side(-150,-160,240,160,P.w)}<rect x="-150" y="-160" width="240" height="160" fill="${P.w}" ${SW} stroke-width="5"/>${plinth(-150,90,P.w)}
+<rect x="138" y="-160" width="14" height="160" fill="#C9C2DD" ${SW} stroke-width="4"/>
+${side(-110,-300,270,140,P.d)}<rect x="-110" y="-300" width="270" height="140" fill="${P.d}" ${SW} stroke-width="5"/><path d="${sl}" stroke="${K}" stroke-opacity=".22" stroke-width="3"/>
+${side(-122,-318,294,20,P.r,1)}<rect x="-122" y="-318" width="294" height="20" rx="4" fill="${P.r}" ${SW} stroke-width="5"/>
+${solar(-100,-322,62,28,14)}${solar(-20,-322,62,28,14)}${solar(60,-322,62,28,14)}
+<path d="M-104,-292 H154" stroke="#7CF0FF" stroke-width="4" stroke-linecap="round"/>
+${wins('home',0,c)}<path d="M-76,-136 V-24 M-34,-268 V-210 M18,-268 V-210" ${SW} stroke-width="4"/>
+<rect x="-4" y="-144" width="52" height="144" rx="4" fill="${P.r}" ${SW} stroke-width="5"/><rect x="32" y="-98" width="7" height="44" rx="3" fill="#FFD15C" ${SW} stroke-width="2.5"/>
+<rect x="58" y="-118" width="22" height="16" rx="4" fill="#FFF8EE" ${SW} stroke-width="3"/><path d="M64,-110 h10" ${SW} stroke-width="3" stroke-linecap="round"/>
+${step(-14,-8,76,14)}<rect x="98" y="-54" width="32" height="46" rx="4" fill="#C9C2DD" ${SW} stroke-width="4"/>${bush(114,-54,15)}${bush(-170,0,20)}`;
+  }},
+  // a tall, narrow townhouse: corner stones, a slate mansard roof with a dormer, little balconies and a bay window
+  town:{wins:[[-24,-452,48,48,24],[-86,-322,56,92,6],[30,-322,56,92,6],[-92,-172,100,84,6]],smoke:[73,-500],art:(P,c)=>{
+    let q='', rail='';
+    for(let y=-382;y<-30;y+=44) q+=`<rect x="-110" y="${y}" width="20" height="22" fill="#FFF8EE" ${SW} stroke-width="3"/><rect x="90" y="${y}" width="20" height="22" fill="#FFF8EE" ${SW} stroke-width="3"/>`;
+    for(const x0 of [-96,20]){ rail+=`M${x0},-236 H${x0+76} `; for(let x=x0+6;x<x0+76;x+=12) rail+=`M${x},-236 V-208 `; }
+    return `<rect x="-150" y="-500" width="300" height="500" fill="transparent"/>
+${gShadow(-110,110)}<rect x="60" y="-492" width="26" height="60" fill="#C0583F" ${SW} stroke-width="4"/><rect x="55" y="-500" width="36" height="11" rx="3" fill="#C0583F" ${SW} stroke-width="4"/>
+${side(-110,-390,220,390,P.w)}<rect x="-110" y="-390" width="220" height="390" rx="6" fill="${P.w}" ${SW} stroke-width="5"/>${q}${plinth(-110,110,P.w)}
+${roofSide(96,-470,118,-398,P.r)}<path d="M-96,-470 l${DPX},${DPY} H${96+DPX} L96,-470 Z" fill="${shade(P.r,1.06)}" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<path d="M-118,-398 L-96,-470 H96 L118,-398 Z" fill="${P.r}" ${SW} stroke-width="5" stroke-linejoin="round"/><path d="M-110,-422 H110 M-104,-446 H104" stroke="${K}" stroke-opacity=".25" stroke-width="3"/>
+<rect x="-36" y="-462" width="72" height="62" fill="${P.w}" ${SW} stroke-width="4"/><path d="M-46,-458 L0,-488 L46,-458 Z" fill="${P.r}" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<rect x="-122" y="-406" width="244" height="16" rx="5" fill="#FFF8EE" ${SW} stroke-width="4"/><rect x="-110" y="-206" width="220" height="12" fill="#FFF8EE" ${SW} stroke-width="4"/>
+${side(-100,-182,112,112,P.w)}<rect x="-100" y="-182" width="112" height="112" fill="${P.w}" ${SW} stroke-width="5"/>
+${wins('home',0,c)}${bars(-24,-452,48,48)}${bars(-86,-322,56,92)}${bars(30,-322,56,92)}<path d="M-59,-172 V-88 M-26,-172 V-88" ${SW} stroke-width="4"/>
+<path d="${rail}" ${SW} stroke-width="4" stroke-linecap="round"/>
+<path d="M-108,-182 L-96,-198 H8 L20,-182 Z" fill="${P.r}" ${SW} stroke-width="4" stroke-linejoin="round"/><rect x="-106" y="-74" width="124" height="12" rx="4" fill="#FFF8EE" ${SW} stroke-width="3.5"/>
+${[-90,-64,-38,-12].map((x,i)=>`<circle cx="${x}" cy="-80" r="7" fill="${['#FF7A5C','#FF9EC4'][i%2]}" ${SW} stroke-width="2.5"/>`).join('')}
+<path d="M32,0 V-118 Q32,-150 60,-150 Q88,-150 88,-118 V0 Z" fill="${P.d}" ${SW} stroke-width="5" stroke-linejoin="round"/><path d="M42,-122 Q42,-140 60,-140 Q78,-140 78,-122 Z" fill="#BFE6FF" ${SW} stroke-width="3"/><circle cx="76" cy="-58" r="5" fill="${K}"/>
+${lantern(100,-134)}${step(20,-8,80,14)}${bush(-130,0,18)}`;
+  }},
+  // an A-frame cabin: a roof down to the ground, a wooden gable with a round window, a deck with railings, stone chimney
+  aframe:{wins:[[-34,-262,68,68,34],[-92,-126,42,54,6],[50,-126,42,54,6]],smoke:[118,-276],art:(P,c)=>{
+    let pl=''; for(let x=-116;x<=116;x+=26) pl+=`M${x},-24 V${(-16-(140-Math.abs(x))/140*356).toFixed(1)} `;
+    return `<rect x="-200" y="-440" width="400" height="440" fill="transparent"/>
+${gShadow(-170,170)}${roofSide(0,-432,190,-16,P.r)}
+<rect x="100" y="-262" width="36" height="110" fill="#B9B3CF" ${SW} stroke-width="4"/><rect x="95" y="-272" width="46" height="12" rx="4" fill="#9A93B8" ${SW} stroke-width="4"/><path d="M108,-240 h10 M120,-216 h10" ${SW} stroke-width="3" opacity=".4" stroke-linecap="round"/>
+<path d="M-190,-16 L0,-432 L190,-16 Z" fill="${P.r}" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<path d="M-168,-34 L0,-402 L168,-34" fill="none" stroke="${shade(P.r,1.3)}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M-140,-16 L0,-372 L140,-16 Z" fill="${P.w}" ${SW} stroke-width="5" stroke-linejoin="round"/><path d="${pl}" stroke="${K}" stroke-opacity=".2" stroke-width="3"/>
+${wins('home',0,c)}${bars(-34,-262,68,68)}
+<path d="M-30,0 V-118 Q-30,-150 0,-150 Q30,-150 30,-118 V0 Z" fill="${P.d}" ${SW} stroke-width="5" stroke-linejoin="round"/><circle cx="18" cy="-60" r="5" fill="${K}"/>
+<circle cx="0" cy="-116" r="13" fill="none" stroke="#3E9A50" stroke-width="7"/><circle cx="0" cy="-103" r="4" fill="#FF7A5C"/>
+<rect x="-178" y="-26" width="356" height="16" rx="5" fill="#A8744A" ${SW} stroke-width="4"/>
+<path d="M-170,-26 V-68 M-110,-26 V-68 M110,-26 V-68 M170,-26 V-68 M-174,-64 H-46 M46,-64 H174 M-174,-44 H-46 M46,-44 H174" ${SW} stroke-width="5" stroke-linecap="round"/>
+${step(-46,-8,92,14)}`;
+  }},
+  // hi-tech: a white pod dome with portholes, a glowing door, an antenna, a satellite dish and a solar panel
+  dome:{wins:[[-118,-150,52,52,26],[66,-150,52,52,26],[-26,-250,52,52,26]],smoke:null,art:(P,c)=>{
+    const D='M-170,-14 A170,276 0 0 1 170,-14 Z';
+    return `<rect x="-205" y="-350" width="410" height="350" fill="transparent"/>
+${gShadow(-160,160)}<path d="${D}" transform="translate(${DPX} ${DPY})" fill="${shade(P.w,.8)}" ${SW} stroke-width="5"/>
+<path d="M-186,0 V-62" ${SW} stroke-width="6" stroke-linecap="round"/>${solar(-206,-62,40,34,14)}
+<path d="${D}" fill="${P.w}" ${SW} stroke-width="5"/>
+<path d="M-90,-14 A90,276 0 0 1 90,-14 M0,-290 V-150 M-158,-108 Q0,-90 158,-108 M-118,-206 Q0,-192 118,-206" fill="none" stroke="${K}" stroke-opacity=".16" stroke-width="3"/>
+<path d="M-142,-70 Q-130,-206 -64,-258" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity=".7"/>
+${[[-92,-124],[92,-124],[0,-224]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="34" fill="#C9C2DD" ${SW} stroke-width="4"/>`).join('')}${wins('home',0,c)}
+<path d="M0,-290 V-330" ${SW} stroke-width="5" stroke-linecap="round"/><circle cx="0" cy="-336" r="9" fill="#FF7A5C" ${SW} stroke-width="3.5"/>
+<g transform="translate(116 -214) rotate(-35)"><path d="M0,0 V-16" ${SW} stroke-width="4"/><path d="M-26,-16 A26,13 0 0 0 26,-16 Z" fill="#FFF8EE" ${SW} stroke-width="4" stroke-linejoin="round"/><path d="M0,-16 V-34" ${SW} stroke-width="3"/><circle cx="0" cy="-36" r="4" fill="${K}"/></g>
+${side(-176,-18,352,18,'#C9C2DD')}<rect x="-176" y="-18" width="352" height="18" rx="8" fill="#C9C2DD" ${SW} stroke-width="4"/>
+${[-140,-100,100,140].map(x=>`<circle cx="${x}" cy="-9" r="4" fill="#7CF0FF"/>`).join('')}
+<path d="M-40,-14 V-110 Q-40,-152 0,-152 Q40,-152 40,-110 V-14 Z" fill="#7CF0FF" ${SW} stroke-width="5"/><path d="M-29,-14 V-108 Q-29,-141 0,-141 Q29,-141 29,-108 V-14 Z" fill="${P.d}" ${SW} stroke-width="4"/><path d="M0,-141 V-14" ${SW} stroke-width="4"/>
+${step(-50,-8,100,12)}${bush(170,0,18)}`;
+  }},
+  // a wide bungalow: a hipped tiled roof, a porch on posts, siding, a flower box and a little picket fence
+  bungalow:{wins:[[-150,-152,76,70,8],[-46,-152,48,70,8]],smoke:[-105,-346],art:(P,c)=>{
+    let sd='', pk='';
+    for(let y=-170;y<-20;y+=22) sd+=`M-170,${y} H160 `;
+    for(let x=-196;x<-12;x+=22) pk+=`M${x},0 v-38 l7,-9 l7,9 v38 z `;
+    const sc=y=>{ const k=(y+182)/-118, xl=-196+70*k, xr=190-60*k, n=Math.round((xr-xl)/26), s=(xr-xl)/n; let d=`M${xl.toFixed(1)},${y}`; for(let i=0;i<n;i++) d+=` q${(s/2).toFixed(1)},10 ${s.toFixed(1)},0`; return d; };
+    return `<rect x="-205" y="-350" width="410" height="350" fill="transparent"/>
+${gShadow(-170,170)}<rect x="-120" y="-334" width="30" height="80" fill="#C0583F" ${SW} stroke-width="4"/><rect x="-126" y="-342" width="42" height="12" rx="4" fill="#C0583F" ${SW} stroke-width="4"/>
+${side(-170,-190,330,190,P.w)}<rect x="-170" y="-190" width="330" height="190" fill="${P.w}" ${SW} stroke-width="5"/><path d="${sd}" stroke="${K}" stroke-opacity=".14" stroke-width="3"/>${plinth(-170,160,P.w)}
+${roofSide(130,-300,190,-182,P.r)}<path d="M-196,-182 L-126,-300 H130 L190,-182 Z" fill="${P.r}" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<path d="${sc(-212)} ${sc(-244)} ${sc(-274)}" stroke="${K}" stroke-opacity=".28" stroke-width="4" fill="none" stroke-linecap="round"/>
+${shutters(-150,-152,76,70,P.d)}${wins('home',0,c)}${bars(-150,-152,76,70)}<path d="M-22,-152 V-82" ${SW} stroke-width="4"/>
+<rect x="-156" y="-86" width="88" height="14" rx="5" fill="#8B5E3C" ${SW} stroke-width="4"/>${[-140,-112,-84].map((x,i)=>`<circle cx="${x}" cy="-90" r="8" fill="${['#FFD15C','#FF7A5C','#FF9EC4'][i]}" ${SW} stroke-width="3"/>`).join('')}
+<rect x="58" y="-140" width="52" height="132" rx="8" fill="${P.d}" ${SW} stroke-width="5"/><rect x="70" y="-126" width="28" height="30" rx="4" fill="#BFE6FF" ${SW} stroke-width="3"/><circle cx="100" cy="-62" r="5" fill="${K}"/>
+${lantern(36,-150)}<rect x="6" y="-24" width="182" height="16" rx="5" fill="#A8744A" ${SW} stroke-width="4"/>
+<rect x="16" y="-184" width="14" height="160" fill="#FFF8EE" ${SW} stroke-width="4"/><rect x="150" y="-184" width="14" height="160" fill="#FFF8EE" ${SW} stroke-width="4"/>
+<path d="M112,-64 H150 M112,-44 H150 M124,-64 V-24 M138,-64 V-24" ${SW} stroke-width="4" stroke-linecap="round"/>
+<path d="M136,-182 V-152" ${SW} stroke-width="3"/><path d="M124,-152 h24 l-4,18 h-16 Z" fill="#C98A52" ${SW} stroke-width="3.5" stroke-linejoin="round"/><circle cx="130" cy="-156" r="8" fill="#4CAF5E" ${SW} stroke-width="3"/><circle cx="142" cy="-158" r="7" fill="#4CAF5E" ${SW} stroke-width="3"/>
+<path d="M-200,-30 H-14 M-200,-14 H-14" ${SW} stroke-width="9" stroke-linecap="round"/><path d="M-200,-30 H-14 M-200,-14 H-14" stroke="#FFF8EE" stroke-width="3.5" stroke-linecap="round"/><path d="${pk}" fill="#FFF8EE" ${SW} stroke-width="3.5" stroke-linejoin="round"/>`;
+  }},
+  // hi-tech: glass walls, a sloping roof full of solar panels, a spinning wind turbine, LED strips and a car charger
+  tech:{wins:[[-124,-276,112,112,4],[12,-276,112,112,4],[-124,-144,112,112,4]],smoke:null,art:(P,c)=>{
+    const ry=x=>-316-(x+160)*58/320;
+    return `<rect x="-200" y="-500" width="400" height="500" fill="transparent"/>
+${gShadow(-150,160)}${side(-140,-300,280,300,P.w)}<rect x="-140" y="-300" width="280" height="300" fill="${P.w}" ${SW} stroke-width="5"/>${plinth(-140,140,P.w)}
+<path class="lit" d="M-140,-300 H140 V-346 Z" fill="#BFE6FF" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<path d="M160,-374 l${DPX},${DPY} v20 L160,-354 Z" fill="${shade(P.r,.8)}" ${SW} stroke-width="4" stroke-linejoin="round"/><path d="M-160,-296 V-316 L160,-374 V-354 Z" fill="${P.r}" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<rect x="106" y="-444" width="8" height="${(444+ry(110)).toFixed(1)}" fill="#C9C2DD" ${SW} stroke-width="3.5"/>
+${[-150,-80,-10].map(x=>solar(x,ry(x)-3,60,24,10,-60*58/320)).join('')}
+<g class="spin"><circle cx="110" cy="-446" r="42" fill="transparent"/>${[0,120,240].map(a=>`<path transform="rotate(${a} 110 -446)" d="M110,-446 Q101,-466 110,-488 Q119,-466 110,-446 Z" fill="#FFF8EE" ${SW} stroke-width="3.5" stroke-linejoin="round"/>`).join('')}<circle cx="110" cy="-446" r="7" fill="${P.d}" ${SW} stroke-width="3"/></g>
+<rect x="-140" y="-162" width="280" height="16" fill="${P.r}" ${SW} stroke-width="4"/><path d="M-134,-154 H134 M-134,-306 H134" stroke="#7CF0FF" stroke-width="4" stroke-linecap="round"/>
+${wins('home',0,c)}${bars(-124,-276,112,112)}${bars(12,-276,112,112)}${bars(-124,-144,112,112)}
+<rect x="-134" y="-198" width="126" height="34" rx="4" fill="#D7F0FF" fill-opacity=".55" ${SW} stroke-width="4"/>
+<rect x="12" y="-144" width="112" height="144" rx="4" fill="#D7F0FF" ${SW} stroke-width="5"/><path d="M68,-144 V0" ${SW} stroke-width="4"/><path d="M24,-40 L56,-120 M84,-40 L112,-110" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".8"/>
+<rect x="56" y="-90" width="6" height="34" rx="3" fill="${K}"/><rect x="74" y="-90" width="6" height="34" rx="3" fill="${K}"/>
+<rect x="-184" y="-98" width="30" height="82" rx="8" fill="${P.r}" ${SW} stroke-width="4"/><rect x="-178" y="-88" width="18" height="14" rx="3" fill="#7CF0FF"/>
+<path d="M-167,-66 l-6,12 h9 l-6,12" fill="none" stroke="#FFD15C" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+${step(2,-8,132,12)}${bush(170,0,18)}`;
+  }}
+};
 function bldArt(type,c){
   if(LM[type]) return lmArt(type);
   if(type==='honey'){
@@ -820,16 +964,7 @@ ${aw}<path d="M-160,-288 H160" ${SW} stroke-width="5" stroke-linecap="round"/>
 ${wins('shop')}<path d="M-130,-60 H20" ${SW} stroke-width="5"/>${fruit}<circle cx="114" cy="-74" r="6" fill="#FFD15C" ${SW} stroke-width="3"/>
 ${step(-160,-8,320,14)}`;
   }
-  const P=HOMES[c%HOMES.length];
-  const fl=[-104,-76,-48,48,76,104].map((x,i)=>`<circle cx="${x}" cy="${-136}" r="9" fill="${['#FF7A5C','#FFD15C','#FF9EC4'][i%3]}" ${SW} stroke-width="3"/>`).join('');
-  return `<rect x="-172" y="-404" width="344" height="404" fill="transparent"/>
-${gShadow(-140,140)}${side(66,-392,38,90,P.r)}<rect x="66" y="-392" width="38" height="90" fill="${P.r}" ${SW} stroke-width="5"/>${side(58,-404,54,16,P.r,1)}<rect x="58" y="-404" width="54" height="16" rx="5" fill="${P.r}" ${SW} stroke-width="4"/>
-${side(-140,-262,280,262,P.w)}<rect x="-140" y="-262" width="280" height="262" rx="8" fill="${P.w}" ${SW} stroke-width="5"/>${plinth(-136,136,P.w)}
-${roofSide(0,-398,172,-250,P.r)}<path d="M-172,-250 L0,-398 L172,-250 Z" fill="${P.r}" ${SW} stroke-width="5" stroke-linejoin="round"/>${shingles(-398,-250,172,[-355,-270])}
-${shutters(-110,-206,70,70,P.d)}${shutters(40,-206,70,70,P.d)}${wins('home',0)}${bars(-110,-206,70,70)}${bars(40,-206,70,70)}
-${fl}<rect x="-116" y="-134" width="80" height="16" rx="5" fill="#8B5E3C" ${SW} stroke-width="4"/><rect x="36" y="-134" width="80" height="16" rx="5" fill="#8B5E3C" ${SW} stroke-width="4"/>
-<path d="M-32,0 V-100 Q-32,-134 0,-134 Q32,-134 32,-100 V0 Z" fill="${P.d}" ${SW} stroke-width="5" stroke-linejoin="round"/><circle cx="19" cy="-56" r="6" fill="${K}"/>
-${step(-50,-8,100,14)}`;
+  return HSTY[HOMES[c%HOMES.length].st].art(HOMES[c%HOMES.length],c);
 }
 // The big buildings, each with a giant toy on the roof so kids can tell them apart without reading.
 function lmArt(type){
@@ -888,7 +1023,7 @@ ${aw(-398,'#FF7A5C')}${aw(-598,'#B07CE8')}${aw(-198,'#7ED957')}
 <g id="mlift"><rect x="140" y="-130" width="80" height="120" rx="10" fill="#FFD15C" ${SW} stroke-width="5"/><rect x="154" y="-116" width="52" height="52" rx="6" fill="#FFF8EE" ${SW} stroke-width="4"/></g>
 ${step(-30,-12,140,16)}`;
 }
-function bldHoles(type,x){ return bldWins(type).map(([wx,wy,w,h,r])=>`<rect x="${x+wx-6}" y="${790+wy-6}" width="${w+12}" height="${h+12}" rx="${r+6}"/>`).join(''); }
+function bldHoles(type,x,c){ return bldWins(type,c).map(([wx,wy,w,h,r])=>`<rect x="${x+wx-6}" y="${790+wy-6}" width="${w+12}" height="${h+12}" rx="${r+6}"/>`).join(''); }
 // Far-off city towers in the slow sky layer, only behind Main Street. Their windows light up at night.
 function skyline(){
   let s='', x=1260, i=0;
@@ -1011,7 +1146,7 @@ function drawTown(){
   let s='', h='';
   for(let i=0;i<NLOTS;i++){
     const x=lotX(i), b=i===HONEY_LOT?{id:'honey',type:'honey',c:0}:S.blds.find(b=>b.lot===i);
-    if(b){ s+=`<g data-hot="bld" data-b="${b.id}" class="hot" id="bld-${b.id}" data-piv="${x} 790"><g transform="translate(${x} 790)"><g id="grow-${b.id}">${bldArt(b.type,b.c)}</g></g></g>`; h+=bldHoles(b.type,x); }
+    if(b){ s+=`<g data-hot="bld" data-b="${b.id}" class="hot" id="bld-${b.id}" data-piv="${x} 790"><g transform="translate(${x} 790)"><g id="grow-${b.id}">${bldArt(b.type,b.c)}</g></g></g>`; h+=bldHoles(b.type,x,b.c); }
     else s+=`<g data-hot="lot" data-lot="${i}" class="hot" transform="translate(${x} 790)">${lotArt(i)}</g>`;
   }
   for(const L of LMS){ s+=`<g data-hot="bld" data-b="${L.id}" class="hot" id="bld-${L.id}" data-piv="${L.x} 790"><g transform="translate(${L.x} 790)">${lmArt(L.id)}</g></g>`; h+=bldHoles(L.id,L.x); }
@@ -1188,7 +1323,7 @@ ${win(530,100,1,P.r,P.d)}
   <g clip-path="url(#picClip)"><path d="${heart(1355,222,26)}" fill="#FF7A5C" ${SW} stroke-width="4"/></g>
   <rect x="1308" y="168" width="94" height="104" rx="4" fill="none" ${SW} stroke-width="3"/>
 </g>
-${sofa('#FF7A5C','#FF9A80','#E8664F')}`;
+${sofa(...(P.so||['#FF7A5C','#FF9A80','#E8664F']))}`;
 }
 function buy(t,x,y,i){ return `<g data-hot="buy" data-type="${t}" class="hot" id="buy${i}" data-piv="${x} ${y}"><rect x="${x-44}" y="${y-90}" width="88" height="94" fill="transparent"/><g transform="translate(${x} ${y}) scale(.72)">${ITEMS[t].art}</g></g>`; }
 function shopArt(b,kind){
@@ -1942,6 +2077,13 @@ function mgableX(F,u0,u1,w0,w1,z,rh,col,wall){
   return mpoly([P(e,w0,z),P(e,w1,z),P(um,w1,z+rh),P(um,w0,z+rh)],shade(col,.8))
     +mpoly([P(u0,w0,z),P(u1,w0,z),P(um,w0,z+rh)],wall);
 }
+// Hipped (or mansard) roof: sloping in from the box u0..u1 × w0..w1 at height z by iu/iw to a ridge (or a flat top) rh higher.
+function mhip(F,u0,u1,w0,w1,z,rh,iu,iw,col){
+  const e=endU(F,u0,u1), P=(u,w,zz)=>fp(F,u,w,zz), a=u0+iu, b=u1-iu, c=w0+iw, d=Math.max(c,w1-iw), ei=e===u0?a:b;
+  return mpoly([P(e,w0,z),P(e,w1,z),P(ei,d,z+rh),P(ei,c,z+rh)],shade(col,.8))
+    +mpoly([P(u0,w0,z),P(u1,w0,z),P(b,c,z+rh),P(a,c,z+rh)],col)
+    +(d>c?mpoly([P(a,c,z+rh),P(b,c,z+rh),P(b,d,z+rh),P(a,d,z+rh)],shade(col,1.1)):'');
+}
 // Paint flat art onto the front wall: local x runs along the street from u0, local y is -height (like bldArt).
 function mface(F,u0,w,s){ const P=fp(F,u0,w), Q=fp(F,u0+1,w); return `<g transform="matrix(${(Q[0]-P[0]).toFixed(3)} ${(Q[1]-P[1]).toFixed(3)} 0 1 ${P[0].toFixed(1)} ${P[1].toFixed(1)})">${s}</g>`; }
 // The same for the end wall that faces us (at u), local x running back along w from w0.
@@ -2078,8 +2220,85 @@ function mBld(type,c,F){
     top=`<g transform="translate(${q[0].toFixed(1)} ${q[1].toFixed(1)}) scale(.55)">${ITEMS.apple.art}</g>`;
     return {s:s+top,h:H+58,W,D};
   }
-  // a family home: a two-storey main part with a tiled roof, chimney and shutters, plus a lower garage wing
-  const p=HOMES[c%HOMES.length], W=31, D=54, H=40, g=Math.round(W*.3);
+  // The houses: each style from HOMES is its own little model (the street versions are in HSTY).
+  const p=HOMES[c%HOMES.length], f=v=>v.toFixed(1);
+  if(p.st==='cube'){
+    // modern: a white ground floor, a wooden upper floor sticking out over a carport, a flat roof with solar panels
+    const W=32, D=50, H1=22, H2=42, g=Math.round(W*.45);
+    let sl=''; for(let x=3;x<W*1.7;x+=4) sl+=`M${f(x)},-${H1+1} V-${H2-1} `;
+    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,g,0,D,0,H1,p.w)
+      +mface(F,-W,0,mbase(W+g,p.w)+mwin(4,-19,20,16,1)+`<path d="M14,-19 v16" ${SW} stroke-width="1.5"/><rect x="29" y="-18" width="8" height="18" rx="1" fill="${p.r}" ${SW} stroke-width="2"/><rect x="34" y="-11" width="1.6" height="6" fill="#FFD15C"/>`)
+      +mbox(F,W-4,W-1,-3,0,0,H1,'#C9C2DD','#C9C2DD',2)+mbox(F,-W*.7,W,-4,D,H1,H2,p.d)
+      +mface(F,-W*.7,-4,`<path d="${sl}" stroke="${K}" stroke-opacity=".25" stroke-width="1"/>`+mwin(8,-37,32,9,1)+`<path d="M1,-${H1+2} H${f(W*1.7-1)}" stroke="#7CF0FF" stroke-width="1.5"/>`)
+      +mbox(F,-W*.7-2,W+2,-6,D+2,H2,H2+3,p.r);
+    for(const u of [-16,2,20]) s+=mpoly([P(u,12,H2+4),P(u+13,12,H2+4),P(u+13,30,H2+11),P(u,30,H2+11)],'#2F4F9A',2);
+    s+=mbush(F,-W+4,-5,6)+mbush(F,W-8,-6,5);
+    return {s,h:H2+12,W,D};
+  }
+  if(p.st==='town'){
+    // a tall, narrow townhouse with corner stones, a mansard roof and dormer, and a bay window
+    const W=22, D=46, H=62;
+    let q=''; for(let y=4;y<H;y+=8) q+=`<rect x="0" y="${-y-4}" width="3" height="4" fill="#FFF8EE"/><rect x="${2*W-3}" y="${-y-4}" width="3" height="4" fill="#FFF8EE"/>`;
+    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,W,0,D,0,H,p.w)+mside(F,nearLow?-W:W,0,mbase(D,p.w)+msideWins(D,H,[-54,-34,-16]))
+      +mbox(F,-W-2,W+2,-2,D+2,H-3,H,'#FFF8EE')+mbox(F,9,15,D-16,D-10,H,H+26,'#C0583F')
+      +mhip(F,-W-1,W+1,-1,D+1,H,16,4,7,p.r)+mbox(F,-6,6,2,10,H+4,H+15,p.w)+mbox(F,-7,7,1,11,H+15,H+17,p.r)+mface(F,-6,2,mwin(3,-(H+13),6,7,3))
+      +mface(F,-W,0,mbase(2*W,p.w)+q+mwin(7,-54,8,13)+mwin(29,-54,8,13)+mwin(7,-35,8,13)+mwin(29,-35,8,13)
+        +`<path d="M5,-36 h12 M27,-36 h12" ${SW} stroke-width="1.5"/>`+mdoor(27,11,20,p.d))
+      +mbox(F,-W+3,-1,-5,0,4,20,p.w)+mface(F,-W+3,-5,mwin(2,-18,14,11,1))+mbox(F,-W+2,0,-6,0,20,22,p.r);
+    return {s,h:H+26,W,D};
+  }
+  if(p.st==='aframe'){
+    // an A-frame cabin: the roof comes down to the ground, a wooden gable at the front, a deck and a stone chimney
+    const W=30, D=50, H=56, e=endU(F,-W,W), cu=e===W?W*.5:-W*.5;
+    let pl=''; for(let x=12;x<2*W-8;x+=6) pl+=`M${x},0 V${f(-(H-8)*(1-Math.abs(x-W)/(W-7)))} `;
+    s+=mShadow(F,-W,W,0,D)+mpoly([P(e,0,0),P(e,D,0),P(0,D,H),P(0,0,H)],shade(p.r,.85))+mpoly([P(-W,0,0),P(W,0,0),P(0,0,H)],p.r)
+      +mface(F,-W,0,`<path d="M7,0 L${W},-${H-8} L${2*W-7},0 Z" fill="${p.w}" ${SW} stroke-width="2"/><path d="${pl}" stroke="${K}" stroke-opacity=".2" stroke-width="1"/>`
+        +`<circle cx="${W}" cy="-28" r="5.5" fill="${MWIN}" ${SW} stroke-width="2"/>`+mdoor(W-5,10,16,p.d)+mwin(13,-13,6,7,1)+mwin(2*W-19,-13,6,7,1))
+      +mbox(F,cu-3,cu+3,D*.55,D*.55+6,26,42,'#B9B3CF')+mbox(F,-W-2,W+2,-9,0,0,3,'#A8744A');
+    return {s,h:H+4,W,D};
+  }
+  if(p.st==='dome'){
+    // hi-tech: a white pod with portholes, a glowing door, an antenna and a dish
+    const W=34, D=48, H=46, [cx,cy]=P(0,D/2), rx=36, ry=20;
+    s+=mShadow(F,-W+4,W-4,4,D-4)+`<ellipse cx="${f(cx)}" cy="${f(cy)}" rx="${rx+3}" ry="${ry+2}" fill="#C9C2DD" ${SW} stroke-width="2.5"/>`
+      +`<path d="M${f(cx-rx)},${f(cy)} A${rx},${ry} 0 0 0 ${f(cx+rx)},${f(cy)} A${rx},${H} 0 0 0 ${f(cx-rx)},${f(cy)} Z" fill="${p.w}" ${SW} stroke-width="3"/>`
+      +`<path d="M${f(cx+rx*.35)},${f(cy+ry*.94)} A${rx},${ry} 0 0 0 ${f(cx+rx)},${f(cy)} A${rx},${H} 0 0 0 ${f(cx+rx*.2)},${f(cy-H*.98)} Q${f(cx+rx*.75)},${f(cy-H*.4)} ${f(cx+rx*.35)},${f(cy+ry*.94)} Z" fill="${K}" opacity=".1"/>`
+      +`<path d="M${f(cx)},${f(cy-H)} Q${f(cx-rx*.55)},${f(cy-H*.5)} ${f(cx-rx*.5)},${f(cy+ry*.86)} M${f(cx)},${f(cy-H)} Q${f(cx+rx*.55)},${f(cy-H*.5)} ${f(cx+rx*.5)},${f(cy+ry*.86)} M${f(cx-rx*.95)},${f(cy-H*.3)} Q${f(cx)},${f(cy-H*.3+ry*.7)} ${f(cx+rx*.95)},${f(cy-H*.3)}" fill="none" stroke="${K}" stroke-opacity=".2" stroke-width="2"/>`
+      +`<ellipse cx="${f(cx-rx*.42)}" cy="${f(cy-H*.55)}" rx="5" ry="9" fill="#fff" opacity=".6"/>`
+      +[[-19,-12,4.5],[19,-12,4.5],[0,-30,4]].map(([x,y,r])=>`<circle cx="${f(cx+x)}" cy="${f(cy+y)}" r="${r}" fill="${MWIN}" ${SW} stroke-width="2.5"/>`).join('')
+      +`<path d="M${f(cx-6)},${f(cy+ry-1)} V${f(cy+ry-15)} Q${f(cx-6)},${f(cy+ry-22)} ${f(cx)},${f(cy+ry-22)} Q${f(cx+6)},${f(cy+ry-22)} ${f(cx+6)},${f(cy+ry-15)} V${f(cy+ry-1)}" fill="${p.d}" stroke="#7CF0FF" stroke-width="2.5"/>`
+      +`<path d="M${f(cx)},${f(cy-H)} v-12" ${SW} stroke-width="2.5" stroke-linecap="round"/><circle cx="${f(cx)}" cy="${f(cy-H-13)}" r="3" fill="#FF7A5C" ${SW} stroke-width="2"/>`
+      +`<ellipse cx="${f(cx+rx*.62)}" cy="${f(cy-H*.82)}" rx="7" ry="3.5" transform="rotate(-30 ${f(cx+rx*.62)} ${f(cy-H*.82)})" fill="#FFF8EE" ${SW} stroke-width="2"/>`;
+    return {s,h:H+14,W,D};
+  }
+  if(p.st==='bungalow'){
+    // a wide, low bungalow with a hipped roof over a porch on posts
+    const W=38, D=48, H=22;
+    let sd=''; for(let y=4;y<H;y+=4) sd+=`M0,-${y} H${2*W} `;
+    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,W,0,D,0,H,p.w)+mside(F,nearLow?-W:W,0,mbase(D,p.w)+msideWins(D,H,[-16]))
+      +mface(F,-W,0,mbase(2*W,p.w)+`<path d="${sd}" stroke="${K}" stroke-opacity=".15" stroke-width="1"/>`+mwin(6,-16,14,10)+mshut(6,-16,14,10,p.d)+mwin(26,-16,9,10)
+        +`<rect x="4" y="-6" width="18" height="3.5" rx="1.5" fill="#8B5E3C"/>`+mdoor(50,10,17,p.d))
+      +mbox(F,2,W+3,-12,0,0,2,'#A8744A');
+    for(const u of [4,W]) s+=mbox(F,u-1.5,u+1.5,-11,-8,2,H,'#FFF8EE','#FFF8EE',1.5);
+    s+=mhip(F,-W-4,W+4,-13,D+4,H,20,20,(D+17)/2,p.r)+mbox(F,-W+10,-W+16,D*.45,D*.45+6,H+18,H+30,'#C0583F')+mbush(F,-W+4,-6,6)+mbush(F,-W+16,-6,5);
+    return {s,h:H+30,W,D};
+  }
+  if(p.st==='tech'){
+    // hi-tech: glass walls with an LED strip, a roof covered in solar panels and a little wind turbine
+    const W=32, D=50, H=46;
+    s+=mShadow(F,-W,W,0,D)+mbox(F,-W,W,0,D,0,H,p.w)+mside(F,nearLow?-W:W,0,mbase(D,p.w)+`<rect x="6" y="-${H-4}" width="${D-12}" height="18" fill="${MWIN}" ${SW} stroke-width="2"/>`)
+      +mface(F,-W,0,mbase(2*W,p.w)+mwin(4,-42,26,18,1)+mwin(34,-42,26,18,1)+mwin(4,-20,26,18,1)
+        +`<rect x="34" y="-20" width="26" height="20" fill="#D7F0FF" ${SW} stroke-width="2"/><path d="M47,-20 V0" ${SW} stroke-width="1.5"/><rect x="0" y="-24" width="${2*W}" height="3" fill="${p.r}"/><path d="M1,-22.5 H${2*W-1}" stroke="#7CF0FF" stroke-width="1.5"/>`)
+      +mbox(F,-W+2,-2,-5,0,23,28,'#D7F0FF')+mbox(F,-W-2,W+2,-2,D+2,H,H+3,p.r);
+    for(const u of [-28,-10,8]) s+=mpoly([P(u,6,H+4),P(u+15,6,H+4),P(u+15,D-8,H+13),P(u,D-8,H+13)],'#2F4F9A',2);
+    const [tx,ty]=P(W-6,D-6,H+3);
+    s+=`<path d="M${f(tx)},${f(ty)} V${f(ty-30)}" ${SW} stroke-width="3" stroke-linecap="round"/>`
+      +[0,120,240].map(a=>`<path transform="rotate(${a+15} ${f(tx)} ${f(ty-30)})" d="M${f(tx)},${f(ty-30)} q-2.5,-6 0,-13 q2.5,7 0,13 Z" fill="#FFF8EE" ${SW} stroke-width="1.5"/>`).join('')
+      +`<circle cx="${f(tx)}" cy="${f(ty-30)}" r="2" fill="${p.d}"/>`+mbush(F,W-4,-5,5);
+    return {s,h:H+44,W,D};
+  }
+  // the cottage: a two-storey main part with a tiled roof, chimney and shutters, plus a lower garage wing
+  const W=31, D=54, H=40, g=Math.round(W*.3);
   const main=mbox(F,-6,4,D*.55,D*.55+10,H,H+34,p.r)+mbox(F,-W,g,0,D,0,H,p.w)+mgable(F,-W,g,0,D,H,28,p.r,p.w)
     +mface(F,-W,0,mbase(W+g,p.w)+mwin(6,-34,11,10)+mwin(25,-34,11,10)+mshut(6,-34,11,10,p.d)+mshut(25,-34,11,10,p.d)
       +mwin(6,-19,12,11)+mdoor(26,12,22,p.d)+`<rect x="4" y="-8" width="16" height="4" rx="2" fill="#8B5E3C"/><circle cx="9" cy="-9" r="2.4" fill="#FF7A5C"/><circle cx="15" cy="-9" r="2.4" fill="#FFD15C"/>`)
@@ -2522,7 +2741,7 @@ function mCarArt(c,st){
 }
 // Where a car is on the map. The two lanes meet at the crossroads, so each car turns the corner smoothly.
 function mCarPos(c){ const v=c.lane?48:26, t=(c.x-3860)*MK; return t<0?[t-v,v,'h']:[-v,t+v,'m']; }
-let mapOn=false;
+let mapOn=false, mBuild=false; // mBuild: the map's hammer is on, so empty lots show a "+" and buildings can be changed
 function mFigs(){
   // Friends and pets: on the pavement where they stand in town, or at the door of the building they're in.
   const byB={}, out=[];
@@ -2557,8 +2776,8 @@ function drawMap(){
     const F=mLotF(i), b=i===HONEY_LOT?{id:'honey',type:'honey',c:0}:S.blds.find(b=>b.lot===i);
     const y=fp(F,0,0)[1]+(mStreet(lotX(i))==='h'?14:-14);
     if(b){ const r=mBld(b.type,b.c,F); L.push({y,s:`<g data-mb="${b.id}" class="hot">${mHull(F,-r.W,r.W,0,r.D,r.h)}${mSoft(r.s)}</g>`}); }
-    else L.push({y,s:`<g data-ml="${i}" class="hot">${mHull(F,-28,28,0,40,60)}<path d="${pth([fp(F,-26,0),fp(F,26,0),fp(F,26,40),fp(F,-26,40)])}" fill="#C98A52" ${SW} stroke-width="3" stroke-dasharray="8 6"/>
-<g class="lotplus"><circle cx="${fp(F,0,20)[0].toFixed(1)}" cy="${(fp(F,0,20)[1]-24).toFixed(1)}" r="17" fill="#FFD15C" ${SW} stroke-width="3.5"/><path d="M${fp(F,0,20)[0].toFixed(1)},${(fp(F,0,20)[1]-33).toFixed(1)} v18 M${(fp(F,0,20)[0]-9).toFixed(1)},${(fp(F,0,20)[1]-24).toFixed(1)} h18" ${SW} stroke-width="5" stroke-linecap="round"/></g></g>`});
+    else L.push({y,s:`<g data-ml="${i}" class="hot">${mHull(F,-28,28,0,40,60)}<path d="${pth([fp(F,-26,0),fp(F,26,0),fp(F,26,40),fp(F,-26,40)])}" fill="#C98A52" ${SW} stroke-width="3" stroke-dasharray="8 6"/>${mBuild?`
+<g class="lotplus"><circle cx="${fp(F,0,20)[0].toFixed(1)}" cy="${(fp(F,0,20)[1]-24).toFixed(1)}" r="17" fill="#FFD15C" ${SW} stroke-width="3.5"/><path d="M${fp(F,0,20)[0].toFixed(1)},${(fp(F,0,20)[1]-33).toFixed(1)} v18 M${(fp(F,0,20)[0]-9).toFixed(1)},${(fp(F,0,20)[1]-24).toFixed(1)} h18" ${SW} stroke-width="5" stroke-linecap="round"/></g>`:''}</g>`});
   }
   for(const Lm of LMS){ const F=mFrame(Lm.x), r=mBld(Lm.id,0,F); L.push({y:fp(F,0,0)[1],s:`<g data-mb="${Lm.id}" class="hot">${mHull(F,-r.W,r.W,0,r.D,r.h)}${mSoft(r.s)}</g>`}); }
   // street trees and lamps on the pavement, between the lots
@@ -2573,7 +2792,7 @@ function drawMap(){
   // "you are here"
   const bid=bldOfRoom(S.room);
   let hx, hy;
-  if(bid){ const F=mFrame(bldX(bid)), r=mBld(bid==='honey'?'honey':LM[bid]?bid:(S.blds.find(b=>b.id===bid)||{}).type||'home',0,F); [hx,hy]=fp(F,0,r.D/2,r.h+10); }
+  if(bid){ const F=mFrame(bldX(bid)), bb=S.blds.find(b=>b.id===bid)||{}, r=mBld(bid==='honey'?'honey':LM[bid]?bid:bb.type||'home',bb.c|0,F); [hx,hy]=fp(F,0,r.D/2,r.h+10); }
   else { const x=clamp(viewCX(),0,TW), t=(x-3860)*MK; [hx,hy]=x<3860?gp(t-MG,6):gp(-6,t+MG); }
   s+=`<g pointer-events="none" transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)})"><g class="mpin"><path d="M0,0 C-6,-10 -16,-18 -16,-30 A16,16 0 0 1 16,-30 C16,-18 6,-10 0,0 Z" fill="#FF7A5C" ${SW} stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="-30" r="6" fill="#FFF8EE" ${SW} stroke-width="3"/></g></g>`;
   $('#mapSvg').innerHTML=`<g id="mZoom">${s}</g>`;
@@ -2631,10 +2850,17 @@ function openMap(){
   if(mapOn) return;
   for(const d of ptrs.values()) if(d.e&&d.lifted) drop(d.e);
   ptrs.clear(); updateDragging();
-  mapOn=true; drawMap(); $('#map').hidden=false; A.creak(); A.sparkle();
+  mapOn=true; setMapBuild(false); drawMap(); $('#map').hidden=false; A.creak(); A.sparkle();
 }
 function closeMap(){ mapOn=false; $('#map').hidden=true; $('#mapSvg').innerHTML=''; }
-// Tapping the map: a building takes you inside, an empty lot opens the builder there, anywhere else drops you on the street.
+function setMapBuild(on){ mBuild=on; $('#bMapBuild').setAttribute('aria-pressed',String(on)); }
+// Redraw an open map where it is now looking (after building on it), popping in the new building.
+function redrawMap(bid){
+  if(!mapOn) return; const t=mT.slice(); drawMap(); mPanTo(t[0],t[1]);
+  const el=bid&&$(`#mapSvg [data-mb="${bid}"]`); if(el) el.classList.add('mpop');
+}
+// Tapping the map: a building takes you inside, anywhere else drops you on the street. With the hammer on, an empty lot
+// or a built house opens the builder right on the map.
 // Dragging the map looks around (with a little glide); a drag is never a tap.
 let mDrag=null, mVel=null;
 function mapDown(ev){ if(mDrag&&mDrag.id!==ev.pointerId) return; const m=$('#mapSvg').getScreenCTM(); mDrag={id:ev.pointerId,x:ev.clientX,y:ev.clientY,t:mT.slice(),k:m?m.a:1,moved:false,lx:ev.clientX,ly:ev.clientY,lt:performance.now(),v:[0,0]}; mVel=null; }
@@ -2653,15 +2879,15 @@ function mapUp(ev){
 function mapTap(ev){
   if(mapUp.skip) return;
   const bEl=ev.target.closest('[data-mb]'), lEl=ev.target.closest('[data-ml]');
+  if(bEl&&mBuild&&/^b\d+$/.test(bEl.dataset.mb)){ openBuild({bid:bEl.dataset.mb,map:true}); return; }
   if(bEl){ const bid=bEl.dataset.mb; closeMap(); A.knock(); switchRoom(roomFor(bid)); return; }
+  if(lEl&&mBuild){ openBuild({lot:+lEl.dataset.ml,map:true}); return; }
   const m=$('#mZoom').getScreenCTM(); if(!m) return;
-  let x;
-  if(lEl) x=lotX(+lEl.dataset.ml);
-  else { const pt=new DOMPoint(ev.clientX,ev.clientY).matrixTransform(m.inverse()), [a,b]=gInv(pt.x,pt.y); x=pt.x<MOX?(a+MG)/MK+3860:(b-MG)/MK+3860; }
-  x=clamp(x,0,TW); closeMap();
+  const pt=new DOMPoint(ev.clientX,ev.clientY).matrixTransform(m.inverse()), [a,b]=gInv(pt.x,pt.y);
+  const x=clamp(pt.x<MOX?(a+MG)/MK+3860:(b-MG)/MK+3860,0,TW); closeMap();
   if(S.room!=='town') switchRoom('town');
   S.camX=clampCam(x-720); S.camV=0; S.camTo=null; S.follow=null; scheduleSave();
-  if(lEl) openBuild({lot:+lEl.dataset.ml}); else A.whoosh();
+  A.whoosh();
 }
 
 /* ================= Poses and geometry ================= */
@@ -3194,7 +3420,8 @@ function ambient(now,dt){
   }
   if(room==='town'&&now>S.nextSmoke){ // chimney smoke from the houses on screen
     S.nextSmoke=now+.55; const cx=camNow();
-    const ch=[[lotX(HONEY_LOT)-112,330],...S.blds.filter(b=>b.type==='home').map(b=>[lotX(b.lot)+85,380])];
+    const ch=[[lotX(HONEY_LOT)-112,330]];
+    for(const b of S.blds){ const k=b.type==='home'&&HSTY[HOMES[b.c%HOMES.length].st].smoke; if(k) ch.push([lotX(b.lot)+k[0],790+k[1]]); }
     for(const [x,y] of ch) if(x>cx-40&&x<cx+1480) spawn('puff',x+rand(-6,6),y,{vx:rand(10,40),vy:rand(-70,-45),life:2.2,sc:rand(.6,.9),grow:1.1,vr:0});
   }
   if(R.clouds) R.clouds.setAttribute('transform',`translate(${(40*Math.sin(now*.07)).toFixed(1)} 0)`);
@@ -3291,8 +3518,9 @@ $('#bBox').addEventListener('click',()=>{ A.init(); openBox(); });
 $('#bBuild').addEventListener('click',()=>{ A.init(); if(S.room!=='town') return; A.bang(); setBuildMode(!S.buildMode); if(S.buildMode) A.bang(.14); });
 $('#buildGrid').addEventListener('click',ev=>{
   const b=ev.target.closest('button'); if(!b||!pick) return; const o=pick; closeBuild();
-  if(b.dataset.raze){ razeBld(o.bid); return; }
-  if(o.bid) changeBld(o.bid,b.dataset.t,+b.dataset.c); else addBld(o.lot,b.dataset.t,+b.dataset.c);
+  if(b.dataset.raze){ razeBld(o.bid); if(o.map) redrawMap(); return; }
+  if(o.bid){ changeBld(o.bid,b.dataset.t,+b.dataset.c); if(o.map) redrawMap(o.bid); }
+  else { const nb=addBld(o.lot,b.dataset.t,+b.dataset.c); if(o.map&&nb) redrawMap(nb.id); }
 });
 $('#bBuildDone').addEventListener('click',closeBuild);
 $('#build').addEventListener('click',ev=>{ if(ev.target.id==='build') closeBuild(); });
@@ -3305,6 +3533,7 @@ $('#bSound').addEventListener('click',ev=>{ A.init(); const b=ev.currentTarget; 
 $('#bMap').addEventListener('click',()=>{ A.init(); openMap(); });
 $('#bMapClose').addEventListener('click',()=>{ closeMap(); A.whoosh(); });
 $('#mapSvg').addEventListener('click',mapTap);
+$('#bMapBuild').addEventListener('click',()=>{ A.init(); A.bang(); setMapBuild(!mBuild); if(mBuild) A.bang(.14); redrawMap(); });
 $('#mapSvg').addEventListener('pointerdown',mapDown);
 addEventListener('pointermove',mapMove);
 addEventListener('pointerup',mapUp);

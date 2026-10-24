@@ -276,16 +276,78 @@ test('the town map shows every building and takes you where you tap', async ({ p
   await page.locator('#mapSvg [data-mb="library"]').click();
   await expect(page.locator('#map')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.__pt.S.room)).toBe('library1');
-  // an empty lot: back to the street there, with the builder open
+  // no "+" on the empty lots until the map's hammer is on
   await page.getByRole('button', { name: 'Town map' }).click();
   await page.waitForTimeout(400);
+  await expect(page.locator('#mapSvg .lotplus')).toHaveCount(0);
+  await expect(page.locator('#bMapBuild')).toHaveAttribute('aria-pressed', 'false');
+  await page.locator('#bMapBuild').click();
+  await expect(page.locator('#bMapBuild')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('#mapSvg .lotplus')).toHaveCount(9);
+  // an empty lot: the builder opens over the map, and the new house appears right there on the map
+  const pan = await page.locator('#mZoom').getAttribute('transform');
   await page.locator('#mapSvg [data-ml="4"]').click();
   await expect(page.locator('#build')).toBeVisible();
-  expect(await page.evaluate(() => [window.__pt.S.room, Math.round(window.__pt.S.camX + 720)])).toEqual(['town', 1920]);
-  await page.locator('#bBuildDone').click();
-  await page.getByRole('button', { name: 'Town map' }).click();
+  await expect(page.locator('#map')).toBeVisible();
+  await page.locator('#buildGrid [data-t="home"]').first().click();
+  await expect(page.locator('#build')).toBeHidden();
+  await expect(page.locator('#map')).toBeVisible();
+  expect(await page.evaluate(() => window.__pt.S.blds.find(b => b.lot === 4))).toMatchObject({ id: 'b3', type: 'home' });
+  await expect(page.locator('#mapSvg [data-mb="b3"]')).toHaveCount(1);
+  await expect(page.locator('#mapSvg [data-ml="4"]')).toHaveCount(0);
+  expect(await page.locator('#mZoom').getAttribute('transform')).toBe(pan);
+  // still hammering: tapping a built house changes it right on the map
+  await page.locator('#mapSvg [data-mb="b3"]').click();
+  await page.locator('#buildGrid [data-t="home"][data-c="6"]').click();
+  await expect(page.locator('#map')).toBeVisible();
+  expect(await page.evaluate(() => window.__pt.S.blds.find(b => b.id === 'b3').c)).toBe(6);
   await page.getByRole('button', { name: 'Close map' }).click();
   await expect(page.locator('#map')).toBeHidden();
+  // the hammer is off again next time; then an empty lot just drops you on the street there
+  await page.getByRole('button', { name: 'Town map' }).click();
+  await page.waitForTimeout(400);
+  await expect(page.locator('#bMapBuild')).toHaveAttribute('aria-pressed', 'false');
+  await page.locator('#mapSvg [data-ml="5"]').click();
+  await expect(page.locator('#map')).toBeHidden();
+  await expect(page.locator('#build')).toBeHidden();
+  expect(await page.evaluate(() => window.__pt.S.room)).toBe('town');
+});
+
+test('every house style is different, on the street, inside and on the map', async ({ page }) => {
+  const n = await page.evaluate(() => {
+    const pt = window.__pt;
+    const lots = [0, 2, 3, 4, 5, 6, 7];
+    lots.forEach((lot, c) => pt.addBld(lot, 'home', c));
+    pt.S.camX = 3520 - 720; pt.S.camV = 0; // looking at lot 8, the empty one
+    return lots.length;
+  });
+  // the builder offers every style, and each looks different
+  await page.locator('#bBuild').click();
+  await page.locator('[data-hot="lot"][data-lot="8"]').click();
+  const tiles = page.locator('#buildGrid [data-t="home"]');
+  await expect(tiles).toHaveCount(n);
+  const arts = await tiles.evaluateAll((els) => els.map((e) => e.innerHTML));
+  expect(new Set(arts).size).toBe(n);
+  await page.locator('#bBuildDone').click();
+  await page.locator('#bBuild').click();
+  // each one can be entered and renders its room
+  for (let i = 1; i <= n; i++) {
+    await page.evaluate((id) => window.__pt.switchRoom(id), 'b' + i);
+    await expect.poll(() => page.evaluate(() => window.__pt.S.room)).toBe('b' + i);
+    expect(await page.locator('#roomL [data-hot="tv"]').count()).toBe(1);
+  }
+  await page.evaluate(() => window.__pt.switchRoom('town'));
+  // and each is drawn on the map, all different
+  await page.getByRole('button', { name: 'Town map' }).click();
+  await expect(page.locator('#map')).toBeVisible();
+  const maps = [];
+  for (let i = 1; i <= n; i++) {
+    const g = page.locator(`#mapSvg [data-mb="b${i}"]`);
+    await expect(g).toHaveCount(1);
+    maps.push((await g.innerHTML()).replace(/-?\d+(\.\d+)?/g, '0'));
+  }
+  expect(new Set(maps).size).toBe(n);
+  expect(errors).toEqual([]);
 });
 
 test('the town map opens zoomed in and can be dragged to look around', async ({ page }) => {
