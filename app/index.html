@@ -1036,44 +1036,76 @@ const CARS=[['conv',0,1,300],['bus',0,0,1900],['conv',1,1,2700],['van',0,0,4300]
   .map(([t,c,lane,x],i)=>({i,t,c,lane,dir:lane?1:-1,x,v:0,vmax:t==='bus'?170:200+i*14,hopT:-9,honkT:-9,treatT:-9,waitT:0,prop:null,el:null,
     surf:{id:'car'+i,x1:-9e3,x2:-9e3,y:0,chars:true,seat:true,car:i}}));
 const laneOf=y=>y<906?-1:y<958?0:1;
-const wheel=(x,r)=>`<circle cx="${x}" cy="${-r}" r="${r}" fill="${K}"/><circle cx="${x}" cy="${-r}" r="${(r*.44).toFixed(1)}" fill="#C9C2DD" ${SW} stroke-width="4"/>`;
+// A tyre with a spoked rim; the rim group (.whl) is turned by stepCars so the wheels roll.
+const wheel=(x,r)=>{ const cy=-r, sp=[0,72,144,216,288].map(a=>{ const s=Math.sin(a*Math.PI/180), c=Math.cos(a*Math.PI/180);
+    return `M${(x+s*r*.24).toFixed(1)},${(cy-c*r*.24).toFixed(1)} L${(x+s*r*.5).toFixed(1)},${(cy-c*r*.5).toFixed(1)}`; }).join(' ');
+  return `<circle cx="${x}" cy="${cy}" r="${r}" fill="${K}"/><circle cx="${x}" cy="${cy}" r="${r-5}" fill="none" stroke="#4A4470" stroke-width="2.5"/>
+<g class="whl" data-x="${x}" data-r="${r}"><circle cx="${x}" cy="${cy}" r="${(r*.6).toFixed(1)}" fill="#E4DFEF" ${SW} stroke-width="3.5"/>
+<path d="${sp}" stroke="#9C95B8" stroke-width="5" stroke-linecap="round"/><circle cx="${x}" cy="${cy}" r="${(r*.22).toFixed(1)}" fill="#8F88AA" ${SW} stroke-width="3"/>
+<circle cx="${(x-r*.28).toFixed(1)}" cy="${(cy-r*.3).toFixed(1)}" r="${(r*.08).toFixed(1)}" fill="#FFF8EE"/></g>`; };
+// The dark wheel well cut into the body above a wheel (sill at y), with a soft fender flare around it.
+const well=(x,R,y)=>`<path d="M${x-R-6},${y} A${R+6},${R+6} 0 0 1 ${x+R+6},${y}" fill="none" stroke="${K}" stroke-width="7" opacity=".16"/>
+<path d="M${x-R},${y} A${R},${R} 0 0 1 ${x+R},${y} Z" fill="#2A2547"/><path d="M${x-R},${y} A${R},${R} 0 0 1 ${x+R},${y}" fill="none" ${SW} stroke-width="5"/>`;
+const rhole=(x,y,w,h,r)=>` M${x+r},${y} H${x+w-r} Q${x+w},${y} ${x+w},${y+r} V${y+h-r} Q${x+w},${y+h} ${x+w-r},${y+h} H${x+r} Q${x},${y+h} ${x},${y+h-r} V${y+r} Q${x},${y} ${x+r},${y} Z`;
+const shine=d=>`<path d="${d}" stroke="#FFF8EE" stroke-width="4" stroke-linecap="round" opacity=".85"/>`;
 function carArt(t,c){
   if(t==='bus'){
-    let holes=''; for(let i=0;i<4;i++){ const x=-240+i*92; holes+=` M${x},-288 H${x+74} V-188 H${x} Z`; }
-    return `<rect x="-280" y="-320" width="560" height="320" fill="transparent"/><ellipse cx="0" cy="-2" rx="270" ry="11" fill="${K}" opacity=".18"/>
-<path fill-rule="evenodd" d="M-268,-36 V-282 Q-268,-314 -236,-314 H206 Q246,-314 254,-272 L270,-150 Q274,-130 274,-108 V-36 Z${holes} M214,-290 H236 Q244,-290 246,-278 L260,-188 H214 Z" fill="#FFD15C" ${SW} stroke-width="5" stroke-linejoin="round"/>
-<path d="M-268,-160 H270" ${SW} stroke-width="6"/><path d="M-268,-140 H272" stroke="#FFF8EE" stroke-width="6"/>
-<rect x="126" y="-290" width="70" height="250" rx="6" fill="#FFE7A0" ${SW} stroke-width="4"/><rect x="134" y="-280" width="54" height="80" rx="4" fill="#D7F0FF" ${SW} stroke-width="3"/><path d="M161,-290 V-40" ${SW} stroke-width="3"/>
-<circle cx="266" cy="-92" r="10" fill="#FFF1B8" ${SW} stroke-width="3.5"/><rect x="-274" y="-110" width="12" height="24" rx="4" fill="#F0453A" ${SW} stroke-width="3"/>
-<rect x="-284" y="-52" width="48" height="18" rx="7" fill="#C9C2DD" ${SW} stroke-width="4"/><rect x="246" y="-52" width="48" height="18" rx="7" fill="#C9C2DD" ${SW} stroke-width="4"/>
-${wheel(-170,38)}${wheel(170,38)}`;
+    let holes=''; for(let i=0;i<4;i++) holes+=rhole(-244+i*86,-288,72,92,10);
+    return `<rect x="-300" y="-340" width="610" height="340" fill="transparent"/><ellipse cx="0" cy="-2" rx="276" ry="11" fill="${K}" opacity=".18"/>
+<rect x="-160" y="-332" width="160" height="24" rx="8" fill="#E9E4F2" ${SW} stroke-width="4"/><path d="M-140,-320 H-20" stroke="#B8B0D0" stroke-width="4" stroke-linecap="round"/>
+<path d="M266,-252 Q298,-256 300,-232" fill="none" ${SW} stroke-width="5" stroke-linecap="round"/><rect x="292" y="-240" width="14" height="40" rx="6" fill="${K}"/>
+<path fill-rule="evenodd" d="M-268,-48 V-282 Q-268,-314 -236,-314 H222 Q258,-314 264,-280 L272,-180 Q276,-150 276,-120 V-52 Q276,-38 262,-38 H-254 Q-268,-38 -268,-52 Z${holes}" fill="#FFD15C" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<path d="M-268,-118 H276 V-52 Q276,-38 262,-38 H-254 Q-268,-38 -268,-52 Z" fill="${K}" opacity=".1"/>
+<path d="M-264,-168 H272" stroke="#FFF8EE" stroke-width="7"/><path d="M-266,-120 H276" ${SW} stroke-width="9"/>
+<path d="M-250,-304 H200" stroke="#FFF8EE" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+<rect x="150" y="-306" width="64" height="14" rx="4" fill="#3B3566" ${SW} stroke-width="3"/><rect x="156" y="-302" width="40" height="6" rx="3" fill="#FFB13B"/>
+<path d="M226,-290 H244 Q256,-290 258,-278 L268,-186 H226 Z" fill="#D7F0FF" ${SW} stroke-width="4" stroke-linejoin="round"/>${shine('M236,-276 L240,-232')}
+<path d="M232,-190 L252,-246" ${SW} stroke-width="3.5" stroke-linecap="round"/>
+<rect x="98" y="-292" width="54" height="252" rx="6" fill="#FFE7A0" ${SW} stroke-width="4"/>
+<rect x="104" y="-284" width="18" height="190" rx="4" fill="#D7F0FF" ${SW} stroke-width="3"/><rect x="128" y="-284" width="18" height="190" rx="4" fill="#D7F0FF" ${SW} stroke-width="3"/><path d="M125,-292 V-40" ${SW} stroke-width="3"/>
+${shine('M110,-272 V-240')}${shine('M134,-272 V-240')}
+<rect x="262" y="-104" width="16" height="26" rx="6" fill="#FFF1B8" ${SW} stroke-width="3.5"/><rect x="264" y="-140" width="12" height="12" rx="3" fill="#FF8A2A" ${SW} stroke-width="3"/>
+<rect x="-276" y="-110" width="14" height="28" rx="4" fill="#F0453A" ${SW} stroke-width="3"/><rect x="-276" y="-146" width="12" height="12" rx="3" fill="#FF8A2A" ${SW} stroke-width="3"/>
+<rect x="-288" y="-60" width="40" height="24" rx="8" fill="#4A4470" ${SW} stroke-width="4"/><rect x="250" y="-60" width="42" height="24" rx="8" fill="#4A4470" ${SW} stroke-width="4"/>
+${well(-170,46,-38)}${well(200,46,-38)}${wheel(-170,38)}${wheel(200,38)}`;
   }
-  if(t==='van') return `<rect x="-200" y="-440" width="410" height="440" fill="transparent"/><ellipse cx="0" cy="-2" rx="196" ry="10" fill="${K}" opacity=".18"/>
+  if(t==='van'){
+    let aw=''; for(let i=0;i<8;i++){ const x=-158+i*27; aw+=`<path d="M${x},-270 H${x+27} V-240 Q${x+13.5},-222 ${x},-240 Z" fill="${i%2?'#FFF8EE':'#4CB8D8'}" ${SW} stroke-width="3" stroke-linejoin="round"/>`; }
+    return `<rect x="-210" y="-440" width="440" height="440" fill="transparent"/><ellipse cx="0" cy="-2" rx="200" ry="10" fill="${K}" opacity=".18"/>
 <path d="M-40,-294 L-74,-362 H-6 Z" fill="#E8B04A" ${SW} stroke-width="4" stroke-linejoin="round"/><path d="M-62,-340 L-30,-360 M-56,-326 L-16,-350 M-48,-312 L-22,-328" ${SW} stroke-width="2.5"/>
 <circle cx="-40" cy="-382" r="36" fill="#FF9EC4" ${SW} stroke-width="4"/><circle cx="-40" cy="-422" r="9" fill="#F0453A" ${SW} stroke-width="3"/>
-<path fill-rule="evenodd" d="M-188,-36 V-268 Q-188,-294 -162,-294 H96 Q112,-294 112,-278 V-36 Z M-140,-246 H40 V-144 H-140 Z" fill="#FF9EC4" ${SW} stroke-width="5" stroke-linejoin="round"/>
-<path d="M112,-36 V-200 H150 Q172,-200 182,-170 L196,-110 Q200,-96 200,-80 V-36 Z" fill="#FFF8EE" ${SW} stroke-width="5" stroke-linejoin="round"/>
-<path d="M122,-190 H150 Q164,-190 172,-166 L182,-126 H122 Z" fill="#D7F0FF" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<rect x="-152" y="-150" width="204" height="16" rx="5" fill="#FFF8EE" ${SW} stroke-width="4"/>
-<rect x="-154" y="-280" width="208" height="26" rx="6" fill="#4CB8D8" ${SW} stroke-width="4"/>${[-120,-50,20].map(x=>`<rect x="${x}" y="-278" width="30" height="22" fill="#FFF8EE"/>`).join('')}
-${[-160,-110,-60,-10,40,90].map(x=>`<circle cx="${x}" cy="-90" r="8" fill="#FFF8EE" ${SW} stroke-width="3"/>`).join('')}
-<circle cx="194" cy="-80" r="9" fill="#FFF1B8" ${SW} stroke-width="3.5"/>
-<rect x="-200" y="-52" width="44" height="18" rx="7" fill="#C9C2DD" ${SW} stroke-width="4"/><rect x="176" y="-52" width="40" height="18" rx="7" fill="#C9C2DD" ${SW} stroke-width="4"/>
-${wheel(-110,34)}${wheel(130,34)}`;
+<path fill-rule="evenodd" d="M-188,-48 V-268 Q-188,-294 -162,-294 H96 Q112,-294 112,-278 V-36 H-176 Q-188,-36 -188,-48 Z${rhole(-140,-232,180,88,12)}" fill="#FF9EC4" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<path d="M-188,-72 H112 V-36 H-176 Q-188,-36 -188,-48 Z" fill="${K}" opacity=".12"/>
+<path d="M-176,-284 H96" stroke="#FFF8EE" stroke-width="4" stroke-linecap="round" opacity=".7"/>
+<path d="M112,-36 V-208 H150 Q172,-208 184,-176 L198,-118 Q206,-100 206,-80 V-50 Q206,-36 192,-36 Z" fill="#FFF8EE" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<path d="M122,-198 H150 Q162,-198 170,-176 L182,-134 H122 Z" fill="#D7F0FF" ${SW} stroke-width="4" stroke-linejoin="round"/>${shine('M134,-186 L140,-152')}
+<path d="M118,-206 V-80 M184,-128 L186,-80" ${SW} stroke-width="3"/><rect x="124" y="-124" width="18" height="7" rx="3" fill="#C9C2DD" ${SW} stroke-width="2.5"/>
+<path d="M176,-150 L190,-150" ${SW} stroke-width="4"/><rect x="186" y="-166" width="12" height="28" rx="5" fill="#FFF8EE" ${SW} stroke-width="3.5"/>
+${aw}<rect x="-152" y="-150" width="204" height="16" rx="5" fill="#FFF8EE" ${SW} stroke-width="4"/>
+${[-160,-110,-60,-10,40,90].map(x=>`<circle cx="${x}" cy="-104" r="8" fill="#FFF8EE" ${SW} stroke-width="3"/>`).join('')}
+<rect x="196" y="-102" width="12" height="22" rx="5" fill="#FFF1B8" ${SW} stroke-width="3.5"/><rect x="-194" y="-120" width="10" height="24" rx="4" fill="#F0453A" ${SW} stroke-width="3"/>
+<rect x="-204" y="-56" width="40" height="20" rx="7" fill="#C9C2DD" ${SW} stroke-width="4"/><rect x="186" y="-56" width="36" height="20" rx="7" fill="#C9C2DD" ${SW} stroke-width="4"/>
+${well(-110,42,-36)}${well(130,42,-36)}${wheel(-110,34)}${wheel(130,34)}`;
+  }
   const P=CONV[c%CONV.length];
-  return `<rect x="-170" y="-180" width="345" height="180" fill="transparent"/><ellipse cx="0" cy="-2" rx="150" ry="10" fill="${K}" opacity=".18"/>
-<path d="M30,-112 L44,-136" ${SW} stroke-width="6" stroke-linecap="round"/><ellipse cx="46" cy="-138" rx="5" ry="14" fill="none" ${SW} stroke-width="5" transform="rotate(25 46 -138)"/>
-<path d="M-152,-36 V-94 Q-152,-114 -130,-114 H34 Q58,-114 74,-100 L134,-94 Q156,-90 156,-62 V-36 Z" fill="${P.b}" ${SW} stroke-width="5" stroke-linejoin="round"/>
-<path d="M-148,-76 H152" stroke="${P.a}" stroke-width="10"/>
-<path d="M40,-112 L62,-168 L76,-166 L60,-106 Z" fill="#D7F0FF" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<path d="M-30,-108 V-44" ${SW} stroke-width="3.5"/><rect x="-64" y="-98" width="22" height="8" rx="3" fill="${K}"/>
-<circle cx="146" cy="-80" r="9" fill="#FFF1B8" ${SW} stroke-width="3.5"/><rect x="-158" y="-100" width="12" height="20" rx="4" fill="#F0453A" ${SW} stroke-width="3"/>
-<rect x="-166" y="-52" width="42" height="18" rx="7" fill="#C9C2DD" ${SW} stroke-width="4"/><rect x="128" y="-52" width="42" height="18" rx="7" fill="#C9C2DD" ${SW} stroke-width="4"/>
-${wheel(-92,34)}${wheel(94,34)}`;
+  return `<rect x="-180" y="-180" width="360" height="180" fill="transparent"/><ellipse cx="0" cy="-2" rx="156" ry="10" fill="${K}" opacity=".18"/>
+<rect x="-166" y="-38" width="22" height="8" rx="3" fill="#8F88AA" ${SW} stroke-width="3"/>
+<path d="M-146,-104 Q-146,-124 -126,-124 H-112 Q-104,-124 -104,-114 V-104 Z" fill="#4A4470" ${SW} stroke-width="4" stroke-linejoin="round"/><path d="M-138,-114 H-112" stroke="#6E6896" stroke-width="3" stroke-linecap="round"/>
+<path d="M26,-106 L36,-124" ${SW} stroke-width="6" stroke-linecap="round"/><ellipse cx="38" cy="-127" rx="4" ry="11" fill="none" ${SW} stroke-width="5" transform="rotate(25 38 -127)"/>
+<path d="M-150,-44 V-86 Q-150,-106 -128,-108 H40 Q100,-108 136,-98 Q162,-90 164,-66 V-46 Q164,-32 150,-32 H-138 Q-150,-32 -150,-44 Z" fill="${P.b}" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<path d="M-57,-44 H59 V-32 H-57 Z" fill="${K}" opacity=".18"/>
+<path d="M-146,-82 H158" stroke="${P.a}" stroke-width="7"/>${shine('M-122,-99 H104')}
+<path d="M-30,-104 V-44 H50 L56,-104" fill="none" ${SW} stroke-width="3" stroke-linejoin="round"/><rect x="24" y="-96" width="20" height="7" rx="3" fill="#E4DFEF" ${SW} stroke-width="2.5"/>
+<path d="M40,-108 L66,-160 Q70,-168 77,-164 L62,-106 Z" fill="#D7F0FF" ${SW} stroke-width="4" stroke-linejoin="round"/>${shine('M62,-150 L56,-128')}
+<path d="M72,-108 Q68,-124 80,-126 H90 Q97,-124 95,-114 Q93,-108 84,-108 Z" fill="${P.b}" ${SW} stroke-width="3.5" stroke-linejoin="round"/>
+<ellipse cx="156" cy="-80" rx="9" ry="11" fill="#FFF1B8" ${SW} stroke-width="3.5"/><rect x="150" y="-64" width="12" height="7" rx="3" fill="#FF8A2A" ${SW} stroke-width="2.5"/>
+<rect x="-157" y="-100" width="12" height="20" rx="4" fill="#F0453A" ${SW} stroke-width="3"/><rect x="-154" y="-96" width="4" height="7" rx="2" fill="#FFF8EE" opacity=".8"/>
+<rect x="-172" y="-54" width="34" height="16" rx="8" fill="#E4DFEF" ${SW} stroke-width="4"/><rect x="142" y="-54" width="34" height="16" rx="8" fill="#E4DFEF" ${SW} stroke-width="4"/>
+${well(-96,39,-32)}${well(98,39,-32)}${wheel(-96,32)}${wheel(98,32)}`;
 }
 function carSurf(c){ const [a,b,sy]=CAR_SEAT[c.t], p=c.x+a*c.dir, q=c.x+b*c.dir; c.surf.x1=Math.min(p,q); c.surf.x2=Math.max(p,q); c.surf.y=LANEY[c.lane]+sy; }
 function makeCars(){
-  for(const c of CARS){ const g=document.createElementNS(NS,'g'); g.setAttribute('class','hot'); g.dataset.hot='car'; g.dataset.car=c.i; g.innerHTML=carArt(c.t,c.c); c.el=g; carSurf(c); }
+  for(const c of CARS){ const g=document.createElementNS(NS,'g'); g.setAttribute('class','hot'); g.dataset.hot='car'; g.dataset.car=c.i; g.innerHTML=carArt(c.t,c.c); c.el=g; c.roll=0; c.whl=[...g.querySelectorAll('.whl')].map(w=>({w,x:+w.dataset.x,r:+w.dataset.r})); carSurf(c); }
 }
 const riders=c=>E.filter(e=>e.room==='town'&&e.surf===c.surf.id);
 function stepCars(now,dt){
@@ -1093,6 +1125,7 @@ function stepCars(now,dt){
     if(c.v===0&&person){ c.waitT+=dt; if(c.waitT>1&&now-c.honkT>7&&onScreen){ c.honkT=now; c.hopT=now; A.honk(); } } else c.waitT=0;
     if(was<4&&c.v>=4&&onScreen) for(let k=0;k<2;k++) spawn('steam',c.x-c.dir*(L+10),LANEY[c.lane]-30,{vx:-c.dir*rand(40,90),vy:rand(-40,-10),life:.8,sc:rand(.4,.7),grow:1.3,vr:0});
     const dx=c.dir*c.v*dt; c.x+=dx;
+    if(c.v&&onScreen){ c.roll+=c.v*dt; for(const w of c.whl) w.w.setAttribute('transform',`rotate(${(c.roll/w.r*57.3%360).toFixed(1)} ${w.x} ${-w.r})`); }
     if((c.dir>0&&c.x>TW+420)||(c.dir<0&&c.x<-420)){ c.lane=1-c.lane; c.dir=-c.dir; if(c.prop) c.prop.y=LANEY[c.lane]; resort=true; }
     carSurf(c);
     for(const e of riders(c)) if(!busy(e)){ e.x+=dx; e.y=c.surf.y; e.face=c.dir; }
@@ -1920,17 +1953,51 @@ const mdoor=(x,w,h,c)=>`<path d="M${x},0 V${-h+w/2} Q${x},${-h} ${x+w/2},${-h} Q
 const mtxt=(txt,x,y,size,fill,ls=1)=>`<text x="${x}" y="${y}" font-family="'Baloo 2',ui-rounded,system-ui,sans-serif" font-weight="800" font-size="${size}" letter-spacing="${ls}" text-anchor="middle" fill="${fill}">${txt}</text>`;
 function mHull(F,u0,u1,w0,w1,h){ // tappable outline around a building (a bit bigger than it)
   const pts=[]; for(const u of [u0-6,u1+6]) for(const w of [w0-16,w1]) for(const z of [0,h]) pts.push(fp(F,u,w,z));
-  pts.sort((p,q)=>p[0]-q[0]||p[1]-q[1]);
-  const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]), lo=[], up=[];
-  for(const p of pts){ while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0) lo.pop(); lo.push(p); }
-  for(const p of pts.slice().reverse()){ while(up.length>1&&cr(up[up.length-2],up[up.length-1],p)<=0) up.pop(); up.push(p); }
-  return `<path d="${pth(lo.slice(0,-1).concat(up.slice(0,-1)))}" fill="transparent"/>`;
+  return `<path d="${pth(chull(pts))}" fill="transparent"/>`;
 }
 const mShadow=(F,u0,u1,w0,w1)=>`<path d="${pth([fp(F,u0,w0),fp(F,u1+8,w0),fp(F,u1+8,w1+10),fp(F,u0,w1+10)])}" fill="${K}" opacity=".12"/>`;
+// A leafy clump: a ring of uneven points joined by outward bulges, so the edge is lumpy like foliage, never a circle.
+function mclump(cx,cy,rx,ry,n,rnd,fill,ink=''){
+  const p=[]; for(let i=0;i<n;i++){ const t=(i+rnd()*.5)/n*Math.PI*2, k=.84+rnd()*.26; p.push([cx+Math.cos(t)*rx*k,cy+Math.sin(t)*ry*k]); }
+  let d=`M${((p[0][0]+p[n-1][0])/2).toFixed(1)},${((p[0][1]+p[n-1][1])/2).toFixed(1)}`;
+  for(let i=0;i<n;i++){ const a=p[i], b=p[(i+1)%n], b2=.28+rnd()*.14;
+    d+=` Q${(a[0]+(a[0]-cx)*b2).toFixed(1)},${(a[1]+(a[1]-cy)*b2).toFixed(1)} ${((a[0]+b[0])/2).toFixed(1)},${((a[1]+b[1])/2).toFixed(1)}`; }
+  return `<path d="${d} Z" fill="${fill}"${ink?` ${SW} stroke-width="${ink}" stroke-linejoin="round"`:''}/>`;
+}
+// A map tree, seeded by where it stands so each one is a little different: mostly broadleaf trees with a lumpy,
+// shaded crown (dark underneath, sunlit top-left) on a tapering trunk, and now and then a conifer.
 function mtree(X,Y,r=13,c='#4E9B3F'){
-  return `<ellipse cx="${(X+5).toFixed(1)}" cy="${Y.toFixed(1)}" rx="${(r*1.1).toFixed(1)}" ry="${(r*.42).toFixed(1)}" fill="${K}" opacity=".15"/>
-<rect x="${(X-3).toFixed(1)}" y="${(Y-r*1.1).toFixed(1)}" width="6" height="${(r*1.1).toFixed(1)}" fill="#8B5E3C" ${SW} stroke-width="2.5"/>
-<circle cx="${X.toFixed(1)}" cy="${(Y-r*1.6).toFixed(1)}" r="${r}" fill="${shade(c,.85)}" ${SW} stroke-width="3"/><circle cx="${(X-r*.25).toFixed(1)}" cy="${(Y-r*1.75).toFixed(1)}" r="${(r*.62).toFixed(1)}" fill="${c}"/>`;
+  let h=(Math.round(X*7.3)*73856093^Math.round(Y*3.1)*19349663)>>>0;
+  const rnd=()=>(h=(h*1103515245+12345)>>>0,(h>>>8)/16777216), F=v=>v.toFixed(1);
+  const sh=`<g opacity=".15">${mclump(X+r*.5,Y,r*1.15,r*.42,8,rnd,K)}</g>`;
+  if(rnd()<.22){
+    // conifer: four tiers with drooping branch tips, the right side in shade
+    const g=shade(c,.7), lit=shade(c,.9), dk=shade(c,.55), H=r*(2.9+rnd()*.5), top=Y-r*.5-H;
+    let s=sh+`<path d="M${F(X-1.8)},${F(Y)} L${F(X-1.2)},${F(Y-r*.7)} H${F(X+1.2)} L${F(X+1.8)},${F(Y)} Z" fill="#6E4A2F" ${SW} stroke-width="2"/>`;
+    for(let t=0;t<4;t++){
+      const f=t/4, yb=Y-r*.4-H*f*.78, yt=t==3?top:yb-H*.42, w=r*(1.05-f*.7), n=5, e=[];
+      for(let k=0;k<=n;k++){ const u=k/n, x=X-w+2*w*u, droop=k%2?0:r*.14; e.push([x,yb+droop-Math.sin(u*Math.PI)*r*.12]); }
+      const edge=e.map(p=>`${F(p[0])},${F(p[1])}`).join(' L');
+      s+=`<path d="M${F(X)},${F(yt)} L${edge} Z" fill="${g}" ${SW} stroke-width="2.4" stroke-linejoin="round"/>`;
+      s+=`<path d="M${F(X)},${F(yt+1)} L${F(e[0][0]+1)},${F(e[0][1]-.5)} L${F(e[1][0])},${F(e[1][1]-.5)} L${F(X-w*.15)},${F(yb-r*.1)} Z" fill="${lit}"/>`;
+      s+=`<path d="M${F(X+.5)},${F(yt+2)} L${F(X+w*.2)},${F(yb-r*.05)} L${F(e[n-1][0])},${F(e[n-1][1]-.5)} L${F(e[n][0]-1)},${F(e[n][1]-.5)} Z" fill="${dk}" opacity=".6"/>`;
+    }
+    return s;
+  }
+  // broadleaf: trunk with two branches into the crown
+  const cy=Y-r*1.7, tk=Math.max(2.2,r*.2), lean=(rnd()-.5)*r*.25;
+  let s=sh+`<path d="M${F(X-tk)},${F(Y)} Q${F(X-tk*.6)},${F(Y-r*.6)} ${F(X-tk*.5+lean)},${F(Y-r*1.2)} L${F(X-r*.45+lean)},${F(cy+r*.2)} L${F(X-tk*.1+lean)},${F(Y-r*1.35)} L${F(X+r*.4+lean)},${F(cy+r*.1)} L${F(X+tk*.5+lean)},${F(Y-r*1.2)} Q${F(X+tk*.6)},${F(Y-r*.6)} ${F(X+tk)},${F(Y)} Z" fill="#7A5234" ${SW} stroke-width="2.2" stroke-linejoin="round"/>`;
+  s+=`<path d="M${F(X+tk*.15)},${F(Y-.5)} Q${F(X+tk*.3)},${F(Y-r*.6)} ${F(X+tk*.2+lean)},${F(Y-r*1.15)} L${F(X+tk*.6+lean)},${F(Y-r*1.15)} Q${F(X+tk*.7)},${F(Y-r*.6)} ${F(X+tk*.9)},${F(Y-.5)} Z" fill="#5C3D27"/>`;
+  const tall=rnd(), cx=X+lean, rx=r*(1.15-tall*.25+rnd()*.1), ry=r*(.85+tall*.35);
+  // dark crown with the outline, a few lower clumps hanging off it, then the lit layers
+  s+=mclump(cx,cy,rx,ry,11,rnd,shade(c,.72),2.6);
+  for(let k=0;k<3;k++){ const a=Math.PI*(.15+k*.35); s+=mclump(cx+Math.cos(a)*rx*.55,cy+Math.sin(a)*ry*.45,rx*.42,ry*.38,7,rnd,shade(c,.66)); }
+  s+=mclump(cx-rx*.12,cy-ry*.14,rx*.78,ry*.7,10,rnd,c);
+  for(let k=0;k<3;k++){ const a=Math.PI*(1.05+k*.32+rnd()*.15); s+=mclump(cx+Math.cos(a)*rx*.38,cy+Math.sin(a)*ry*.36,rx*.36,ry*.3,7,rnd,shade(c,1.12)); }
+  s+=mclump(cx-rx*.38,cy-ry*.45,rx*.24,ry*.2,6,rnd,shade(c,1.28));
+  // a couple of dark gaps in the foliage on the shady side
+  for(let k=0;k<2;k++) s+=mclump(cx+rx*(.3+rnd()*.3),cy+ry*(.05+rnd()*.35),r*.16,r*.11,5,rnd,shade(c,.6));
+  return s;
 }
 // The street buildings, seen from above. Sizes are map pixels; F is centred on the lot, the front wall is at w=0.
 // Parts are drawn far-to-near along the street (nearU tells which end of the street is closer to us).
@@ -2163,11 +2230,105 @@ const f1=v=>v.toFixed(1);
 let MLAMP='#FFF8EE', MGLOW=[];
 function mlamp(X,Y){ MGLOW.push([X,Y-29]); return `<path d="M${f1(X)},${f1(Y)} v-25" stroke="${K}" stroke-width="3.5" stroke-linecap="round"/><path d="M${f1(X-4.5)},${f1(Y-24)} h9 l-2,-8 h-5 Z" fill="${MLAMP}" ${SW} stroke-width="2" stroke-linejoin="round"/>`; }
 const mbench=(F,u,w)=>mbox(F,u-8,u+8,w-2,w+2,4,6,'#C98A52','#C98A52',2)+mbox(F,u-8,u+8,w+2,w+3,6,11,'#C98A52','#C98A52',2);
-const MCARC=['#FF7A5C','#4CB8D8','#FFF8EE','#E8473A','#FFD15C','#7ED957','#C9C2DD','#FF9EC4','#4C6FD8','#3A3A4A'];
-// A parked car seen from above; alongW: it points away from the street (parking bays), otherwise along it.
+const MCARC=['#FF7A5C','#4CB8D8','#F4F1EA','#E8473A','#FFD15C','#7ED957','#B9BCC6','#FF9EC4','#4C6FD8','#3A3A4A','#2F4C7A','#8A9099'];
+// Map vehicles are little rounded models. Each part is a slab: a rounded outline at z0 and another at z1, its sides the
+// hull of both. V is the vehicle's own frame: u runs from the tail to the nose, w across, z up (k scales the whole car).
+const chull=pts=>{
+  pts=pts.slice().sort((p,q)=>p[0]-q[0]||p[1]-q[1]);
+  const cr=(o,a,b)=>(a[0]-o[0])*(b[1]-o[1])-(a[1]-o[1])*(b[0]-o[0]), lo=[], up=[];
+  for(const p of pts){ while(lo.length>1&&cr(lo[lo.length-2],lo[lo.length-1],p)<=0) lo.pop(); lo.push(p); }
+  for(const p of pts.slice().reverse()){ while(up.length>1&&cr(up[up.length-2],up[up.length-1],p)<=0) up.pop(); up.push(p); }
+  return lo.slice(0,-1).concat(up.slice(0,-1));
+};
+// A rounded rectangle from u0 to u1, half-width hw, corner radius r, as (u,w) points.
+function mrr(u0,u1,hw,r){
+  r=Math.min(r,hw,(u1-u0)/2); const pts=[];
+  for(const [cu,cw,a0] of [[u1-r,hw-r,0],[u0+r,hw-r,90],[u0+r,-hw+r,180],[u1-r,-hw+r,270]])
+    for(let k=0;k<=3;k++){ const t=(a0+k*30)*Math.PI/180; pts.push([cu+r*Math.cos(t),cw+r*Math.sin(t)]); }
+  return pts;
+}
+function vslab(P,b,z0,t,z1,col,top=col,sw=2){
+  const B=mrr(...b).map(([u,w])=>P(u,w,z0)), T=mrr(...t).map(([u,w])=>P(u,w,z1));
+  return `<path d="${pth(chull(B.concat(T)))}" fill="${shade(col,.8)}" ${SW} stroke-width="${sw}" stroke-linejoin="round"/><path d="${pth(T)}" fill="${top}" ${SW} stroke-width="${sw*.7}" stroke-linejoin="round"/>`;
+}
+const vflat=(P,o,z,fill)=>`<path d="${pth(mrr(...o).map(([u,w])=>P(u,w,z)))}" fill="${fill}"/>`;
+// a tyre: a disc standing upright along the car's side
+const vwheel=(P,u,w,r)=>{ const pts=[]; for(let k=0;k<10;k++){ const t=k*Math.PI/5; pts.push(P(u+r*Math.cos(t),w,r+r*Math.sin(t))); }
+  const h=P(u,w,r); return `<path d="${pth(pts)}" fill="#2B2740"/><circle cx="${f1(h[0])}" cy="${f1(h[1])}" r="${f1(r*.38)}" fill="#B9BCC6"/>`; };
+const MVD={sedan:[12,6],hatch:[10,5.6],suv:[12.5,6.6],taxi:[12,6],pickup:[13.5,6.4],conv:[12.5,6.3],ice:[15,7],bus:[22,8],truck:[16,7.2],fire:[18,7.2],amb:[14,7]};
+// o: where it stands in ground coords (a,b); du: which way the nose points; go: it is driving (headlight beams at night).
+function mveh(o,du,type,col,{k=1,acc='#FFF8EE',go=false}={}){
+  const V={o,u:du,w:[-du[1],du[0]]}, P=(u,w,z)=>fp(V,u*k,w*k,z*k), [L,W]=MVD[type], night=!!S.night;
+  const glass=night&&type==='bus'?MWIN:night?'#4A5A80':'#8DB6D6', big=type==='bus'||type==='truck'||type==='fire';
+  // the first slab drawn is the lower body: the near tyres go on its side, in their wheel arches
+  let nw='';
+  const R=(u0,u1,hw,r)=>[u0,u1,hw,r], sl=(b,z0,t,z1,c,top)=>{ const r=vslab(P,b,z0,t,z1,c,top)+nw; nw=''; return r; };
+  const sheen=(u0,u1,hw,z,c)=>vflat(P,R(u0+1.2,u1-1.2,hw-1.2,1.5),z,shade(c,1.14));
+  const near=P(0,W,0)[1]>P(0,-W,0)[1]?1:-1, nose=P(1,0,0)[1]>P(0,0,0)[1];
+  let s=`<path d="${pth(mrr(-L-1,L+1,W+1,4).map(([u,w])=>P(u,w,0)).map(([x,y])=>[x+2,y+1.5]))}" fill="${K}" opacity=".2"/>`;
+  if(go&&night) s+=`<path d="${pth([P(L,-W+1,0),P(L+20,-W-5,0),P(L+20,W+5,0),P(L,W-1,0)])}" fill="#FFE48A" opacity=".32"/>`;
+  // tyres on the far side and the dark underbody (the near tyres come with the body)
+  const wr=big?3:2.4, ax=type==='bus'?[-L+5,L-5]:big?[-L+4,-L+9,L-4]:[-L+3.6,L-3.6];
+  for(const u of ax) s+=vwheel(P,u,-near*(W-.2),wr);
+  s+=vslab(P,R(-L+.6,L-.6,W-.6,3),1,R(-L+.6,L-.6,W-.6,3),2.8,'#3A3552');
+  for(const u of ax) nw+=vwheel(P,u,near*(W+.05),wr);
+  // two parts side by side along the car (a cab and a box): draw the farther one first
+  const pair=(back,front)=>nose?back+front:front+back;
+  if(type==='sedan'||type==='taxi'||type==='hatch'){
+    const hb=type==='hatch', cb=hb?[-L+1,3.5]:[-6.5,4], ct=hb?[-L+1.7,.8]:[-5,2];
+    s+=sl(R(-L,L,W,3.2),2.6,R(-L+.4,L-.4,W-.3,3),6.4,col)+sl(R(cb[0],cb[1],W-.7,2.5),6.4,R(ct[0],ct[1],W-2,2),10.6,glass,col)+sheen(ct[0],ct[1],W-2,10.6,col);
+    if(type==='taxi') s+=sl(R(-2.2,.8,2.6,1),10.6,R(-2,.6,2.4,1),12.8,'#FFF8EE');
+  } else if(type==='suv'){
+    s+=sl(R(-L,L,W,3.2),2.6,R(-L+.4,L-.4,W-.3,3),8,col)+sl(R(-L+1.2,5,W-.6,2.5),8,R(-L+1.6,2.5,W-1.8,2),13.4,glass,col)+sheen(-L+1.6,2.5,W-1.8,13.4,col);
+    s+=`<path d="M${P(-L+3,W-2.6,13.5).map(f1)} L${P(1.5,W-2.6,13.5).map(f1)} M${P(-L+3,-W+2.6,13.5).map(f1)} L${P(1.5,-W+2.6,13.5).map(f1)}" stroke="#3A3552" stroke-width="1.2" stroke-linecap="round"/>`;
+  } else if(type==='pickup'){
+    s+=sl(R(-L,L,W,3),2.6,R(-L+.3,L-.4,W-.3,2.8),7.6,col)+vflat(P,R(-L+1.2,-2.4,W-1.3,1.4),7.6,shade(col,.55))
+      +sl(R(-1.5,6,W-.6,2),7.6,R(-.8,3.8,W-1.8,1.6),12.2,glass,col);
+  } else if(type==='conv'){
+    s+=sl(R(-L,L,W,3.4),2.6,R(-L,L,W,3.4),5,col)+sl(R(-L,L,W,3.4),5,R(-L,L,W,3.4),5.8,acc)+sl(R(-L,L,W,3.4),5.8,R(-L+.4,L-.5,W-.3,3.1),6.8,col)
+      +vflat(P,R(-7,3.4,W-1.4,2.2),6.8,'#4A4470')+vflat(P,R(-5.5,-3.5,W-2.2,1),6.9,shade(acc,.9))+vflat(P,R(-.5,1.5,W-2.2,1),6.9,shade(acc,.9))
+      +sl(R(3.4,4.4,W-1.2,.5),6.8,R(2.6,3.4,W-1.6,.4),10,glass);
+  } else if(type==='bus'){
+    s+=sl(R(-L,L,W,3.5),2.6,R(-L,L,W,3.5),10,col)+sl(R(-L+.2,L-.2,W-.2,3.4),10,R(-L+.4,L-.4,W-.4,3.3),17,glass);
+    let pl=''; for(let u=-L+6;u<L-3;u+=7) pl+=`M${P(u,near*(W-.3),10.2).map(f1)} L${P(u,near*(W-.4),16.8).map(f1)} `;
+    s+=`<path d="${pl}" stroke="${shade(col,.85)}" stroke-width="1.8"/>`+sl(R(-L+.4,L-.4,W-.4,3.3),17,R(-L+.8,L-.8,W-.9,3),20,col,'#FFF8EE')+sl(R(-7,1,4,1.2),20,R(-6.6,.6,3.6,1),21.8,'#E9E4F2');
+  } else if(type==='ice'){
+    s+=sl(R(-L,L,W,3.4),2.6,R(-L+.3,L-.4,W-.3,3.2),9,col);
+    const box=sl(R(-L+.6,5,W-.3,3),9,R(-L+1,4.6,W-.6,2.8),18.5,'#FFF8EE');
+    let aw=''; for(let i=0;i<6;i++){ const u=-L+2.5+i*3; aw+=`<path d="${pth([P(u,near*(W-.3),15.5),P(u+3,near*(W-.3),15.5),P(u+3,near*(W+.8),13.5),P(u,near*(W+.8),13.5)])}" fill="${i%2?'#FFF8EE':'#4CB8D8'}"/>`; }
+    const q=P(-4,0,18.5), cone=`<g transform="translate(${f1(q[0])} ${f1(q[1])}) scale(${k})"><path d="M0,0 L-5,-10 H5 Z" fill="#E8B04A" ${SW} stroke-width="2"/><circle cx="0" cy="-14" r="6" fill="#FF9EC4" ${SW} stroke-width="2"/></g>`;
+    s+=pair(box+aw+cone,sl(R(5,10.5,W-.5,2.5),9,R(5,7.5,W-1.4,2),15,glass,col));
+  } else if(type==='truck'){
+    s+=sl(R(-L,L,W,2.4),2.6,R(-L,L,W,2.4),4.4,'#6B6880');
+    const cab=sl(R(6,L,W,2.6),4.4,R(6,L-.3,W-.2,2.4),8,col)+sl(R(6.2,L-.4,W-.3,2.3),8,R(6.6,L-2.2,W-1.2,2),12.6,glass,col);
+    const box=sl(R(-L,5,W,2),4.4,R(-L,5,W,2),12,'#F4F1EA')+sl(R(-L,5,W,2),12,R(-L,5,W,2),14,col)+sl(R(-L,5,W,2),14,R(-L+.2,4.8,W-.2,1.8),20,'#F4F1EA');
+    s+=pair(box,cab);
+  } else if(type==='fire'){
+    s+=sl(R(-L,L,W,2.4),2.6,R(-L,L,W,2.4),5,col);
+    const cab=sl(R(8,L,W,2.6),5,R(8,L-.3,W-.2,2.4),9,col)+sl(R(8.2,L-.4,W-.3,2.3),9,R(8.6,L-2.2,W-1.2,2),13.2,glass,col)+sl(R(10.5,13,4,1),13.2,R(10.5,13,4,1),14.4,'#4CB8D8');
+    let lad=''; for(let u=-L+3;u<9;u+=2.4) lad+=`M${P(u,-3,12.4).map(f1)} L${P(u,3,12.4).map(f1)} `;
+    lad+=`M${P(-L+2,-3,12.4).map(f1)} L${P(9,-3,12.4).map(f1)} M${P(-L+2,3,12.4).map(f1)} L${P(9,3,12.4).map(f1)}`;
+    const body=sl(R(-L,7.5,W,2.4),5,R(-L,7.5,W,2.4),6,col)+sl(R(-L,7.5,W,2.4),6,R(-L,7.5,W,2.4),7.4,'#FFF8EE')+sl(R(-L,7.5,W,2.4),7.4,R(-L+.2,7.3,W-.2,2.2),11.5,col,'#C9C2DD')
+      +`<path d="${lad}" stroke="#3A3552" stroke-width="2.6" stroke-linecap="round"/><path d="${lad}" stroke="#F4F1EA" stroke-width="1.3" stroke-linecap="round"/>`;
+    s+=pair(body,cab);
+  } else if(type==='amb'){
+    s+=sl(R(-L,L,W,2.4),2.6,R(-L,L,W,2.4),5,col);
+    const cab=sl(R(5,L,W,2.6),5,R(5,L-.3,W-.2,2.4),8,col)+sl(R(5.2,L-.4,W-.3,2.3),8,R(5.6,L-2.4,W-1.2,2),12,glass,col);
+    const box=sl(R(-L,4.5,W,2.2),5,R(-L,4.5,W,2.2),7,col)+sl(R(-L,4.5,W,2.2),7,R(-L,4.5,W,2.2),9,'#E8473A')+sl(R(-L,4.5,W,2.2),9,R(-L+.2,4.3,W-.2,2),17,col)
+      +sl(R(1,3.6,4,1),17,R(1,3.6,4,1),18.3,'#4C8DF0')
+      +`<path d="M${P(-8,0,17).map(f1)} L${P(-2,0,17).map(f1)} M${P(-5,-3,17).map(f1)} L${P(-5,3,17).map(f1)}" stroke="#E8473A" stroke-width="2.6" stroke-linecap="round"/>`;
+    s+=pair(box,cab);
+  }
+  // lights on whichever end faces us: headlights at the nose, red lights at the tail
+  const lz=big||type==='ice'||type==='amb'?6:4.8, lw=W-1.8;
+  for(const w of [-lw,lw]){ const [x,y]=P(nose?L-.1:-L+.1,w,lz); s+=`<circle cx="${f1(x)}" cy="${f1(y)}" r="${f1(1.3*k)}" fill="${nose?(night?'#FFE48A':'#FFF8EE'):'#F0453A'}"/>`; }
+  return s;
+}
+// A parked car (alongW: it points away from the street, as in parking bays and drives; otherwise along the street).
+const MPARK=['sedan','hatch','suv','sedan','pickup','hatch','suv','sedan'];
 function mcar(F,u,w,col,alongW){
-  const l=alongW?5:9, d=alongW?9:5;
-  return mbox(F,u-l,u+l,w-d,w+d,1,6,col,col,2)+(alongW?mbox(F,u-l+1.2,u+l-1.2,w-d*.4,w+d*.3,6,10,'#D7F0FF',col,1.8):mbox(F,u-l*.4,u+l*.3,w-d+1.2,w+d-1.2,6,10,'#D7F0FF',col,1.8));
+  const o=[F.o[0]+u*F.u[0]+w*F.w[0],F.o[1]+u*F.u[1]+w*F.w[1]], h=Math.abs(Math.round(u*7+w*13));
+  return mveh(o,alongW?[-F.w[0],-F.w[1]]:F.u,MPARK[h%MPARK.length],col,{k:.78});
 }
 const mumb=(X,Y,c)=>`<ellipse cx="${f1(X)}" cy="${f1(Y)}" rx="8" ry="3.5" fill="#FFF8EE" ${SW} stroke-width="2"/><path d="M${f1(X)},${f1(Y)} v-19" stroke="${K}" stroke-width="2"/><path d="M${f1(X-14)},${f1(Y-17)} Q${f1(X)},${f1(Y-31)} ${f1(X+14)},${f1(Y-17)} Q${f1(X)},${f1(Y-13)} ${f1(X-14)},${f1(Y-17)} Z" fill="${c}" ${SW} stroke-width="2.5" stroke-linejoin="round"/>`;
 const msign=(X,Y,r,bg,icon)=>`<g transform="translate(${f1(X)} ${f1(Y)}) scale(${(r/9).toFixed(2)})"><circle r="9" fill="${bg}" ${SW} stroke-width="2.5"/>${icon}</g>`;
@@ -2355,13 +2516,9 @@ function mPark(){
 }
 const mLotF=i=>mFrame(lotX(i));
 function mCarArt(c,st){
-  const F=st==='h'?HF(0,0):MFr(0,0), L=c.t==='bus'?22:c.t==='van'?16:13, d=c.dir, P=CONV[c.c%CONV.length];
-  const col=c.t==='bus'?'#FFD15C':c.t==='van'?'#FF9EC4':P.b;
-  let s=`<ellipse cx="${fp(F,0,0)[0]+3}" cy="${fp(F,0,0)[1]+2}" rx="${L+4}" ry="${(L+4)*.45}" fill="${K}" opacity=".18"/>`;
-  if(c.t==='conv') s+=mbox(F,-L,L,-7,7,2,10,col,P.a,2.5)+mbox(F,d>0?3:-5,d>0?5:-3,-6,6,10,16,'#D7F0FF',undefined,2.5);
-  else if(c.t==='bus') s+=mbox(F,-L,L,-8,8,2,22,col,'#FFF8EE',2.5)+mface(F,-L,-8,`<path d="M3,-18 h${2*L-6} v7 h-${2*L-6} z" fill="${MWIN}" ${SW} stroke-width="2"/>`);
-  else { s+=mbox(F,-L,L,-7,7,2,20,col,'#FFF8EE',2.5); const q=fp(F,-d*4,0,20); s+=`<g transform="translate(${q[0].toFixed(1)} ${q[1].toFixed(1)})"><path d="M0,0 L-5,-10 H5 Z" fill="#E8B04A" ${SW} stroke-width="2"/><circle cx="0" cy="-14" r="6" fill="#FFF8EE" ${SW} stroke-width="2"/></g>`; }
-  return s;
+  const F=st==='h'?HF(0,0):MFr(0,0), P=CONV[c.c%CONV.length];
+  const [type,col]=c.t==='bus'?['bus','#FFD15C']:c.t==='van'?['ice','#FF9EC4']:['conv',P.b];
+  return mveh([0,0],[F.u[0]*c.dir,F.u[1]*c.dir],type,col,{acc:P.a,go:true});
 }
 // Where a car is on the map. The two lanes meet at the crossroads, so each car turns the corner smoothly.
 function mCarPos(c){ const v=c.lane?48:26, t=(c.x-3860)*MK; return t<0?[t-v,v,'h']:[-v,t+v,'m']; }
@@ -2410,8 +2567,7 @@ function drawMap(){
   for(const x of [...LAMPX,600,1500,2400,3300,4300,4900,6100,7000]){ const F=mFrame(x), w=LAMPX.includes(x)?-9:-66, [X,Y]=fp(F,0,w); L.push({y:Y,s:mSoft(mlamp(X,Y))}); }
   L.push(...mPark().map(o=>({y:o.y,s:mSoft(o.s)})), ...mFigs());
   L.sort((p,q)=>p.y-q.y);
-  s+=L.map(o=>o.s).join('');
-  s+=`<g id="mCars" pointer-events="none">${CARS.map(c=>`<g id="mcar${c.i}"></g>`).join('')}</g>`;
+  s+=`<g id="mL">${L.map(o=>`<g>${o.s}</g>`).join('')}</g>`;
   if(night) s+=`<rect x="${MV[0]-10}" y="${MV[1]-10}" width="${MV[2]-MV[0]+20}" height="${MV[3]-MV[1]+20}" fill="#1E1A4A" opacity=".28" pointer-events="none"/>`
     +`<g fill="#FFE48A" opacity=".35" pointer-events="none">${MGLOW.map(([X,Y])=>`<circle cx="${f1(X)}" cy="${f1(Y)}" r="13"/>`).join('')}</g>`;
   // "you are here"
@@ -2423,17 +2579,52 @@ function drawMap(){
   $('#mapSvg').innerHTML=`<g id="mZoom">${s}</g>`;
   // open on the middle of town: the crossroads, the park and the big buildings around them
   { const [fx,fy]=gp(-120,100); mPanTo(720-MZ*fx,500-MZ*fy); }
-  mCarKey={}; stepMap();
+  mLN=[...$('#mL').children]; mLY=L.map(o=>o.y);
+  mCarKey={}; mTrafInit(); stepMap();
 }
-let mCarKey={};
+// Moving cars sit in the sorted scenery (mLN, sorted by mLY), so buildings in front of them hide them.
+let mCarKey={}, mLN=[], mLY=[], mTraf=[], mLast=0;
+function mEl(id){
+  let el=document.getElementById(id); if(el) return el;
+  el=document.createElementNS('http://www.w3.org/2000/svg','g'); el.id=id; el.setAttribute('pointer-events','none'); el._i=-1; return el;
+}
+function mMove(el,a,b,dy){
+  const [X,Y]=gp(a,b), y=Y+dy; let lo=0, hi=mLY.length;
+  while(lo<hi){ const m=(lo+hi)>>1; if(mLY[m]<=y) lo=m+1; else hi=m; }
+  if(el._i!==lo||!el.parentNode){ el._i=lo; $('#mL').insertBefore(el,mLN[lo]||null); }
+  el.removeAttribute('display'); el.setAttribute('transform',`translate(${(X-MOX).toFixed(1)} ${(Y-MOY).toFixed(1)})`);
+}
+// Extra traffic that only lives on the map: cars, taxis, trucks, a fire engine and an ambulance driving up and down the
+// side streets that can be seen. They fade out at the end of their road and come back in at the other end.
+const MTT=['sedan','hatch','taxi','suv','truck','sedan','pickup','amb','hatch','suv','fire','taxi','sedan','truck','hatch','pickup'];
+function mTrafInit(){
+  const cs=[[MV1[0],MV1[1]],[MV1[2],MV1[1]],[MV1[0],MV1[3]],[MV1[2],MV1[3]]].map(([x,y])=>gInv(x,y));
+  const lo=i=>Math.min(...cs.map(p=>p[i]))-40, hi=i=>Math.max(...cs.map(p=>p[i]))+40;
+  const {H,M}=mRoads(), roads=[...H.filter(h=>h.w<30&&h.b>lo(1)&&h.b<hi(1)).map(h=>({h:1,c:h.b,f:Math.max(h.f,lo(0)),t:Math.min(h.t,hi(0))})),
+    ...M.filter(m=>m.w<30&&m.a>lo(0)&&m.a<hi(0)).map(m=>({h:0,c:m.a,f:Math.max(m.f,lo(1)),t:Math.min(m.t,hi(1))}))].filter(r=>r.t-r.f>160);
+  mTraf=[]; let n=0;
+  for(const r of roads) for(let j=0;j<(r.t-r.f>1000?2:1)&&n<30;j++,n++){
+    const type=MTT[n%MTT.length], dir=n%2?1:-1, col=type==='taxi'?'#FFD15C':type==='fire'?'#E8473A':type==='amb'?'#F4F1EA':MCARC[(n*5)%MCARC.length];
+    const el=mEl('mt'+n); el.innerHTML=mSoft(mveh([0,0],r.h?[dir,0]:[0,dir],type,col,{k:.85,go:true}));
+    mTraf.push({r,dir,el,s:r.f+(r.t-r.f)*((n*.618+j*.5)%1),v:20+(n*7)%14,o:-1,dy:(MVD[type][0]+MVD[type][1])*.42});
+  }
+}
 function stepMap(){
+  const now=performance.now()/1000, dt=Math.min(.05,Math.max(0,now-mLast)); mLast=now;
+  if(!$('#mL')) return;
   for(const c of CARS){
-    const el=document.getElementById('mcar'+c.i); if(!el) continue;
+    const el=mEl('mcar'+c.i);
     if(c.x<-60||c.x>TW+60){ el.setAttribute('display','none'); continue; }
     const [a,b,st]=mCarPos(c), key=st+c.dir;
     if(mCarKey[c.i]!==key){ mCarKey[c.i]=key; el.innerHTML=mSoft(mCarArt(c,st)); }
-    const [X,Y]=gp(a,b), [X0,Y0]=gp(0,0);
-    el.removeAttribute('display'); el.setAttribute('transform',`translate(${(X-X0).toFixed(1)} ${(Y-Y0).toFixed(1)})`);
+    mMove(el,a,b,c.t==='bus'?15:10);
+  }
+  for(const m of mTraf){
+    const r=m.r; m.s+=m.dir*m.v*dt;
+    if(m.s>r.t) m.s=r.f; else if(m.s<r.f) m.s=r.t;
+    const o=+clamp(Math.min(m.s-r.f,r.t-m.s)/24,0,1).toFixed(2);
+    if(o!==m.o){ m.o=o; m.el.setAttribute('opacity',o); }
+    mMove(m.el,r.h?m.s:r.c-m.dir*6,r.h?r.c+m.dir*6:m.s,m.dy);
   }
 }
 function openMap(){
