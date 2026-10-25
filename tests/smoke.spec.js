@@ -150,6 +150,22 @@ test('a new home is empty, scrolls, and gets furniture from the bed button', asy
   expect(await page.evaluate(() => window.__pt.E.filter((e) => e.type === 'bed').length)).toBe(1);
 });
 
+test('furniture is drawn in the anime look and the floor lamp lights up', async ({ page }) => {
+  const b = await page.evaluate(() => window.__pt.addBld(2, 'home', 3));
+  await page.evaluate((id) => window.__pt.switchRoom(id), b.id);
+  await page.locator('#bFurn').click();
+  // every cel shadow points at a clip path in the stage's defs
+  const missing = await page.evaluate(() => [...document.querySelectorAll('#furnGrid [clip-path]')]
+    .map((el) => el.getAttribute('clip-path').slice(5, -1)).filter((id) => !document.querySelector('#world defs #' + id)));
+  expect(missing).toEqual([]);
+  await page.locator('#furnGrid [data-type="floorlamp"]').click();
+  await expect.poll(() => page.evaluate(() => window.__pt.E.find((e) => e.type === 'floorlamp').surf)).toBe('floor');
+  const lamp = await page.evaluate(() => { const e = window.__pt.E.find((e) => e.type === 'floorlamp'); return { id: e.id, x: e.x, y: e.y }; });
+  const p = await toScreen(page, lamp.x, lamp.y - 200);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.locator(`#ents [data-id="${lamp.id}"]`)).toHaveClass(/\bon\b/);
+});
+
 test('the hat changes skin tone and hair style', async ({ page }) => {
   await page.locator('#bDress').click();
   await expect(page.locator('#dress')).toBeVisible();

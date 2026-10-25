@@ -43,6 +43,11 @@ body{background:var(--frame);color:var(--ink);font-family:var(--display);
 #world .ent{cursor:grab}
 #world .hot{cursor:pointer}
 #world .held .sh{display:none}
+.fglow{opacity:0;transition:opacity .25s}
+#world .ent.on .fglow{opacity:.55}
+#world .ent.on .fshade{fill:#FFF0A6}
+#world .ent.on .fshadeS{fill:#F5D46A}
+#world .ent.on .fbulb{fill:#FFF6C9}
 button{font-family:var(--display);color:var(--ink);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 button:focus-visible{outline:4px solid var(--coral);outline-offset:4px}
 
@@ -1747,89 +1752,118 @@ const ITEMS={
 };
 // Furniture: big items from the furniture button (inside built homes). `furn` lists the surfaces that move with the piece,
 // relative to its feet: friends sit, lie or stand on them and things can be set on them. Furniture only stands on the floor.
+// Furniture is drawn in the anime look: thin lines (AL), one hard-edged cel shadow per surface and a white highlight.
+// cel() fills a shape, lays its shadow/highlight inside it through a clip path, then draws the line on top. The clip paths
+// collect in ACL and go into the stage's <defs> once (the picker tiles use them too), so pieces only reference them.
+const AL='#4A3B5C';
+const AC={w:'#FFFFFF',ws:'#DCD5EF',wd:'#E9C79F',wds:'#C99B6C',b:'#AFDBF7',bs:'#7FB5E2',p:'#FFCADD',ps:'#F0A0BF',pl:'#FFE3EE',m:'#C3EBDB',ms:'#92CFB8',ml:'#E2F6EE',
+  y:'#FFE58F',ys:'#F2C35A',l:'#DCCFF7',ls:'#B9A6E6',g:'#B6E3A0',gl:'#D4F0C2',gs:'#86C46C',t:'#FFB59A',ts:'#E8907A',sv:'#E4E9F2',svs:'#BFC6D6',dk:'#4B4366',dks:'#3A3352'};
+const aR=(x,y,w,h,r=0)=>{ r=Math.min(r,w/2,h/2); return `M${x+r},${y} H${x+w-r} Q${x+w},${y} ${x+w},${y+r} V${y+h-r} Q${x+w},${y+h} ${x+w-r},${y+h} H${x+r} Q${x},${y+h} ${x},${y+h-r} V${y+r} Q${x},${y} ${x+r},${y} Z`; };
+const aE=(cx,cy,rx,ry)=>`M${cx-rx},${cy} a${rx},${ry} 0 1 0 ${2*rx},0 a${rx},${ry} 0 1 0 ${-2*rx},0 Z`;
+const aC=(cx,cy,r)=>aE(cx,cy,r,r);
+let ACL='', acN=0;
+function cel(d,fill,sd,sfill,hd,cls){
+  const id='ac'+(acN++); ACL+=`<clipPath id="${id}"><path d="${d}"/></clipPath>`;
+  return `<path d="${d}" fill="${fill}"${cls?` class="${cls}"`:''}/>`+(sd||hd?`<g clip-path="url(#${id})">${sd?`<path d="${sd}" fill="${sfill}"${cls?` class="${cls}S"`:''}/>`:''}${hd?`<path d="${hd}" fill="#fff" opacity=".85"/>`:''}</g>`:'')
+    +`<path d="${d}" fill="none" stroke="${AL}" stroke-width="3" stroke-linejoin="round"/>`;
+}
+const aLine=(d,w=3,o=1)=>`<path d="${d}" fill="none" stroke="${AL}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" opacity="${o}"/>`;
+const aSpark=(x,y,r)=>`<path d="M${x},${y-r} Q${x+r*.12},${y-r*.12} ${x+r},${y} Q${x+r*.12},${y+r*.12} ${x},${y+r} Q${x-r*.12},${y+r*.12} ${x-r},${y} Q${x-r*.12},${y-r*.12} ${x},${y-r} Z" fill="#fff" stroke="${AL}" stroke-width="2"/>`;
+const aLeaf=(d,sd,f)=>cel(d,f,sd,AC.gs);
 Object.assign(ITEMS,{
-  bed:{h:322,w:518,snd:'boop',furn:[{x1:-215,x2:207,y:-162,chars:true,lie:true,snap:[35,115]}],art:`<g transform="translate(-1055 -792)">
-<rect x="840" y="756" width="22" height="36" fill="${K}"/><rect x="1262" y="756" width="22" height="36" fill="${K}"/>
-<rect x="826" y="686" width="470" height="78" rx="12" fill="#F2B93B" ${SW} stroke-width="5"/>
-<rect x="796" y="470" width="58" height="322" rx="26" fill="#FFD15C" ${SW} stroke-width="5"/>
-<path d="${star5(825,530,16,7)}" fill="#FFF8EE" ${SW} stroke-width="3.5" stroke-linejoin="round"/>
-<rect x="840" y="636" width="444" height="64" rx="20" fill="#FFF8EE" ${SW} stroke-width="5"/>
-<rect x="858" y="600" width="112" height="46" rx="23" fill="#FFF8EE" ${SW} stroke-width="4.5"/>
-<path d="M880,612 Q914,622 948,612" ${SW} stroke-width="3" opacity=".3" fill="none"/>
-<rect x="990" y="626" width="296" height="108" rx="22" fill="#4CB8D8" ${SW} stroke-width="5"/>
-<g fill="#FFF8EE" opacity=".85"><circle cx="1036" cy="686" r="6"/><circle cx="1096" cy="706" r="6"/><circle cx="1156" cy="680" r="6"/><circle cx="1216" cy="704" r="6"/><circle cx="1256" cy="676" r="5"/></g>
-<rect x="990" y="626" width="296" height="26" rx="13" fill="#FFF8EE" ${SW} stroke-width="4"/>
-<rect x="1268" y="586" width="46" height="206" rx="20" fill="#FFD15C" ${SW} stroke-width="5"/></g>`},
-  sofa:{h:252,w:332,snd:'boop',furn:[{x1:-102,x2:102,y:-98,chars:true,seat:true},{x1:-162,x2:-108,y:-186},{x1:108,x2:162,y:-186}],
-    art:`<g transform="translate(-1150 -798)">${sofa('#B07CE8','#CFB0F2','#9A66D4')}</g>`},
-  armchair:{h:196,w:232,snd:'boop',furn:[{x1:-50,x2:50,y:-90,chars:true,seat:true,snap:[0,0]}],art:`<rect x="-74" y="-12" width="14" height="12" fill="${K}"/><rect x="60" y="-12" width="14" height="12" fill="${K}"/>
-<rect x="-88" y="-196" width="176" height="150" rx="40" fill="#FF7A5C" ${SW} stroke-width="5"/>
-<rect x="-62" y="-176" width="124" height="100" rx="28" fill="#FF9A80" ${SW} stroke-width="4"/>
-<rect x="-84" y="-52" width="168" height="40" rx="14" fill="#E8664F" ${SW} stroke-width="4"/>
-<rect x="-70" y="-100" width="140" height="58" rx="22" fill="#FF9A80" ${SW} stroke-width="5"/>
-<rect x="-116" y="-140" width="52" height="128" rx="24" fill="#FF7A5C" ${SW} stroke-width="5"/>
-<rect x="64" y="-140" width="52" height="128" rx="24" fill="#FF7A5C" ${SW} stroke-width="5"/>`},
-  table:{h:156,w:320,snd:'clack',furn:[{x1:-160,x2:160,y:-156,chars:true}],art:`<rect x="-130" y="-128" width="22" height="128" rx="6" fill="#A8744A" ${SW} stroke-width="4"/>
-<rect x="108" y="-128" width="22" height="128" rx="6" fill="#A8744A" ${SW} stroke-width="4"/>
-<rect x="-120" y="-130" width="240" height="24" fill="#B0733F" ${SW} stroke-width="4"/>
-<rect x="-160" y="-156" width="320" height="30" rx="12" fill="#C98A52" ${SW} stroke-width="5"/>
-<path d="M-140,-145 H60" stroke="#FFF8EE" stroke-width="5" opacity=".4" stroke-linecap="round"/>`},
-  chair:{h:232,w:120,snd:'clack',furn:[{x1:-40,x2:40,y:-100,chars:true,seat:true,snap:[5,5]}],art:`<rect x="34" y="-92" width="18" height="92" rx="7" fill="#7ED957" ${SW} stroke-width="4"/>
-<rect x="-50" y="-232" width="24" height="232" rx="10" fill="#7ED957" ${SW} stroke-width="5"/>
-<rect x="-58" y="-112" width="118" height="26" rx="11" fill="#5BBF6A" ${SW} stroke-width="5"/>
-<circle cx="-38" cy="-206" r="5" fill="#FFF8EE"/>`},
-  wardrobe:{h:556,w:254,snd:'creak',furn:[{x1:-103,x2:103,y:-556,chars:true}],art:`<g transform="translate(-155 -792)">
-<rect x="52" y="770" width="20" height="22" fill="${K}"/><rect x="238" y="770" width="20" height="22" fill="${K}"/>
-<rect x="40" y="250" width="230" height="526" rx="18" fill="#FF9EC4" ${SW} stroke-width="5"/>
-<rect x="58" y="272" width="84" height="480" rx="12" fill="none" ${SW} stroke-width="3" opacity=".35"/>
-<rect x="168" y="272" width="84" height="480" rx="12" fill="none" ${SW} stroke-width="3" opacity=".35"/>
-<path d="M155,262 V764" ${SW} stroke-width="4"/>
-<circle cx="140" cy="520" r="9" fill="#FFD15C" ${SW} stroke-width="3"/><circle cx="170" cy="520" r="9" fill="#FFD15C" ${SW} stroke-width="3"/>
-<path d="${heart(100,380,22)}" fill="#FFF8EE" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<path d="${star5(210,380,24,11)}" fill="#FFD15C" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<rect x="28" y="236" width="254" height="24" rx="8" fill="#F087B0" ${SW} stroke-width="5"/></g>`},
-  bookcase:{h:330,w:220,snd:'flip',furn:[{x1:-110,x2:110,y:-330,chars:true},{x1:-90,x2:90,y:-216},{x1:-90,x2:90,y:-112}],art:`<rect x="-110" y="-330" width="220" height="330" rx="12" fill="#A8744A" ${SW} stroke-width="5"/>
-<rect x="-92" y="-312" width="184" height="296" rx="6" fill="#8B5E3C"/>
-<rect x="-90" y="-310" width="20" height="94" rx="3" fill="#FF7A5C" ${SW} stroke-width="3"/><rect x="-70" y="-296" width="20" height="80" rx="3" fill="#4CB8D8" ${SW} stroke-width="3"/><rect x="-50" y="-302" width="18" height="86" rx="3" fill="#FFD15C" ${SW} stroke-width="3"/><path d="M-30,-216 L-12,-296 L4,-292 L-14,-216 Z" fill="#7ED957" ${SW} stroke-width="3" stroke-linejoin="round"/>
-<rect x="30" y="-200" width="20" height="88" rx="3" fill="#B07CE8" ${SW} stroke-width="3"/><rect x="50" y="-190" width="20" height="78" rx="3" fill="#FF9EC4" ${SW} stroke-width="3"/><rect x="70" y="-204" width="18" height="92" rx="3" fill="#FF7A5C" ${SW} stroke-width="3"/>
-<rect x="-104" y="-222" width="208" height="12" rx="4" fill="#C98A52" ${SW} stroke-width="3.5"/>
-<rect x="-104" y="-118" width="208" height="12" rx="4" fill="#C98A52" ${SW} stroke-width="3.5"/>`},
-  floorlamp:{h:392,w:120,snd:'click',furn:[],art:`<ellipse cx="0" cy="-6" rx="46" ry="12" fill="${K}"/>
-<rect x="-5" y="-300" width="10" height="294" rx="5" fill="${K}"/>
-<circle class="fbulb" cx="0" cy="-296" r="14" fill="#F3E9D2" ${SW} stroke-width="3"/>
-<path class="fshade" d="M-58,-300 L-34,-392 L34,-392 L58,-300 Z" fill="#4CB8D8" ${SW} stroke-width="5" stroke-linejoin="round"/>
-<path d="M-44,-336 H44" stroke="#FFF8EE" stroke-width="6" opacity=".7"/>`},
-  bigplant:{h:320,w:240,snd:'rustle',furn:[],art:`<path d="M0,-96 Q-110,-96 -120,-176 Q-50,-166 0,-96 Z" fill="#4CAF5E" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<path d="M0,-96 Q100,-102 118,-176 Q50,-164 0,-96 Z" fill="#5BBF6A" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<path d="M0,-96 Q-90,-146 -96,-256 Q-20,-216 0,-96 Z" fill="#5BBF6A" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<path d="M0,-96 Q86,-156 84,-274 Q14,-226 0,-96 Z" fill="#4CAF5E" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<path d="M0,-96 Q-30,-206 6,-320 Q40,-206 0,-96 Z" fill="#6DCB78" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<path d="M0,-98 L-70,-221 M0,-98 L64,-238 M0,-98 L4,-296 M0,-98 L-96,-156 M0,-98 L96,-158" ${SW} stroke-width="2.5" opacity=".35"/>
-<path d="M-56,-96 L56,-96 L44,0 L-44,0 Z" fill="#FFD15C" ${SW} stroke-width="5" stroke-linejoin="round"/>
-<rect x="-64" y="-112" width="128" height="22" rx="8" fill="#F2B93B" ${SW} stroke-width="4.5"/>
-<circle cx="-16" cy="-56" r="6" fill="#FFF8EE"/><circle cx="14" cy="-38" r="6" fill="#FFF8EE"/>`},
-  rug:{h:70,w:460,snd:'boop',furn:[],art:`<ellipse cx="0" cy="-30" rx="230" ry="34" fill="#B07CE8" ${SW} stroke-width="5"/>
-<ellipse cx="0" cy="-30" rx="188" ry="21" fill="none" stroke="#FFF8EE" stroke-width="7" stroke-dasharray="1 16" stroke-linecap="round"/>`},
-  tv:{h:320,w:330,snd:'click',furn:[{x1:-150,x2:150,y:-320}],art:`<g transform="translate(-275 -620)">
-<rect x="140" y="604" width="16" height="16" fill="${K}"/><rect x="394" y="604" width="16" height="16" fill="${K}"/>
-<rect x="120" y="540" width="310" height="70" rx="12" fill="#A8744A" ${SW} stroke-width="5"/>
-<rect x="255" y="518" width="40" height="24" fill="${K}"/>
-<rect x="112" y="300" width="326" height="220" rx="22" fill="${K}"/>
-<g class="tvs">${tvScene(0)}</g>
-<rect x="128" y="316" width="294" height="188" rx="12" fill="none" stroke="${K}" stroke-width="6"/>
-<circle cx="404" cy="511" r="5" fill="#7ED957"/></g>`},
-  stove:{h:214,w:208,snd:'gurgle',furn:[{x1:-100,x2:100,y:-214,chars:true}],art:`<rect x="-96" y="-200" width="192" height="200" rx="14" fill="#FFF8EE" ${SW} stroke-width="5"/>
-<rect x="-74" y="-130" width="148" height="100" rx="10" fill="#5A4FA0" ${SW} stroke-width="4"/>
-<path d="M-56,-110 h30" stroke="#FFF8EE" stroke-width="5" opacity=".5" stroke-linecap="round"/>
-<rect x="-70" y="-152" width="140" height="10" rx="5" fill="${K}"/>
-<g fill="#FF7A5C" ${SW} stroke-width="3"><circle cx="-60" cy="-176" r="8"/><circle cx="-30" cy="-176" r="8"/><circle cx="30" cy="-176" r="8"/><circle cx="60" cy="-176" r="8"/></g>
-<rect x="-104" y="-214" width="208" height="20" rx="8" fill="#C9C2DD" ${SW} stroke-width="4.5"/>`},
-  tub:{h:200,w:400,snd:'splash',furn:[{x1:-170,x2:170,y:-150,chars:true,seat:true,snap:[-90,90]}],art:`<circle cx="-130" cy="-14" r="14" fill="#FFD15C" ${SW} stroke-width="4"/><circle cx="130" cy="-14" r="14" fill="#FFD15C" ${SW} stroke-width="4"/>
-<path d="M-176,-160 V-196 H-138" fill="none" ${SW} stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/><path d="M-176,-160 V-196 H-138" fill="none" stroke="#C9C2DD" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-<path d="M-180,-150 H180 V-96 Q180,-24 110,-24 H-110 Q-180,-24 -180,-96 Z" fill="#FFF8EE" ${SW} stroke-width="5" stroke-linejoin="round"/>
-<path d="M-150,-120 Q-150,-60 -100,-56" stroke="#4CB8D8" stroke-width="7" fill="none" stroke-linecap="round" opacity=".6"/>
-<rect x="-196" y="-166" width="392" height="24" rx="12" fill="#4CB8D8" ${SW} stroke-width="5"/>
-<g fill="#fff" fill-opacity=".7" ${SW} stroke-width="3"><circle cx="-60" cy="-184" r="14"/><circle cx="-34" cy="-192" r="10"/><circle cx="40" cy="-182" r="12"/><circle cx="70" cy="-196" r="8"/></g>`}
+  bed:{h:322,w:518,snd:'boop',furn:[{x1:-215,x2:207,y:-162,chars:true,lie:true,snap:[35,115]}],art:
+`${cel(aR(-238,-42,20,42,5),AC.wd,aR(-228,-50,20,60),AC.wds)}${cel(aR(210,-42,20,42,5),AC.wd,aR(220,-50,20,60),AC.wds)}
+${cel(aR(-250,-102,490,64,16),AC.wd,aR(-260,-66,520,40),AC.wds,aR(-236,-95,320,7,3.5))}
+${cel(aR(-212,-160,420,62,18),AC.w,aR(-220,-124,440,30),AC.ws)}
+${cel('M-200,-172 Q-202,-204 -164,-204 H-122 Q-94,-204 -96,-172 Q-98,-150 -124,-150 H-174 Q-198,-150 -200,-172 Z',AC.w,'M-206,-160 Q-150,-168 -90,-182 V-140 H-206 Z',AC.ws)}
+${cel('M-66,-170 Q-40,-180 10,-176 H206 Q236,-174 236,-146 V-84 Q204,-72 170,-86 Q112,-70 52,-86 Q-4,-72 -50,-86 Q-68,-84 -66,-104 Z',AC.b,'M-80,-122 Q60,-108 250,-124 V-60 H-80 Z',AC.bs,'M-40,-168 Q60,-176 190,-170 Q70,-162 -40,-160 Z')}
+${aLine('M50,-152 Q62,-122 54,-98 M150,-160 Q162,-132 150,-106',2.4,.5)}
+<path d="${star5(0,-128,9,4)} ${star5(100,-140,7,3)} ${star5(196,-118,8,3.5)}" fill="#fff" opacity=".9"/>
+${cel(aR(-266,-322,56,286,26),AC.w,aR(-236,-330,40,300),AC.ws,aR(-256,-298,9,140,4.5))}
+${cel(heart(-238,-262,13),AC.p)}
+${cel(aR(204,-210,40,174,18),AC.w,aR(222,-220,30,190),AC.ws)}${aSpark(150,-226,12)}`},
+  sofa:{h:252,w:332,snd:'boop',furn:[{x1:-102,x2:102,y:-98,chars:true,seat:true},{x1:-162,x2:-108,y:-186},{x1:108,x2:162,y:-186}],art:
+`${cel(aR(-146,-30,18,30,5),AC.wd,aR(-138,-40,20,60),AC.wds)}${cel(aR(128,-30,18,30,5),AC.wd,aR(136,-40,20,60),AC.wds)}
+${cel(aR(-156,-252,312,150,40),AC.p,aR(-166,-170,332,80),AC.ps,aR(-124,-240,160,8,4))}
+${cel(aR(-162,-80,324,50,14),AC.p,aR(-170,-52,340,30),AC.ps)}
+${cel(heart(-56,-156,22),AC.w,'M-56,-200 H-20 V-110 H-56 Z',AC.ws)}
+${cel(aR(-104,-112,102,42,16),AC.pl,aR(-106,-86,106,30),AC.p)}${cel(aR(2,-112,102,42,16),AC.pl,aR(0,-86,106,30),AC.p)}
+${cel(aR(-172,-186,68,156,30),AC.p,aR(-140,-196,40,176),AC.ps,aR(-162,-172,9,60,4.5))}${cel(aR(104,-186,68,156,30),AC.p,aR(136,-196,40,176),AC.ps,aR(114,-172,9,60,4.5))}`},
+  armchair:{h:196,w:232,snd:'boop',furn:[{x1:-50,x2:50,y:-90,chars:true,seat:true,snap:[0,0]}],art:
+`${cel(aR(-76,-16,16,16,4),AC.wd)}${cel(aR(60,-16,16,16,4),AC.wd)}
+${cel(aR(-88,-196,176,150,40),AC.m,aR(-98,-120,196,80),AC.ms,aR(-60,-184,90,8,4))}
+${cel(aR(-86,-56,172,42,14),AC.m,aR(-96,-32,192,30),AC.ms)}
+${cel(aR(-66,-100,132,52,20),AC.ml,aR(-70,-72,140,30),AC.m)}
+${cel(aR(-118,-140,54,128,26),AC.m,aR(-92,-150,34,150),AC.ms,aR(-110,-128,8,50,4))}${cel(aR(64,-140,54,128,26),AC.m,aR(90,-150,34,150),AC.ms,aR(72,-128,8,50,4))}`},
+  table:{h:156,w:320,snd:'clack',furn:[{x1:-160,x2:160,y:-156,chars:true}],art:
+`${cel(aR(-130,-132,20,132,6),AC.wd,aR(-118,-140,14,150),AC.wds)}${cel(aR(110,-132,20,132,6),AC.wd,aR(122,-140,14,150),AC.wds)}
+${cel(aR(-122,-134,244,22,4),AC.wds)}
+${cel(aR(-160,-156,320,28,12),AC.wd,aR(-170,-138,340,20),AC.wds,aR(-140,-150,200,6,3))}`},
+  chair:{h:232,w:120,snd:'clack',furn:[{x1:-40,x2:40,y:-100,chars:true,seat:true,snap:[5,5]}],art:
+`${cel(aR(34,-92,18,92,7),AC.y,aR(44,-100,14,110),AC.ys)}
+${cel(aR(-52,-232,26,232,12),AC.y,aR(-38,-240,20,250),AC.ys,aR(-46,-220,6,90,3))}
+${cel(heart(-39,-198,8),AC.p)}
+${cel(aR(-58,-112,118,26,11),AC.y,aR(-62,-96,126,14),AC.ys,aR(-44,-108,70,5,2.5))}`},
+  wardrobe:{h:556,w:254,snd:'creak',furn:[{x1:-103,x2:103,y:-556,chars:true}],art:
+`${cel(aR(-104,-24,20,24,5),AC.wd)}${cel(aR(84,-24,20,24,5),AC.wd)}
+${cel(aR(-114,-532,228,512,14),AC.w,aR(72,-540,60,530),AC.ws)}
+${cel(aR(-100,-500,90,450,8),'#CFEAF7',aR(-110,-300,110,260),'#A9D3EA','M-90,-486 L-58,-486 L-100,-426 L-100,-452 Z M-48,-486 L-36,-486 L-100,-398 L-100,-412 Z')}
+${cel(aR(10,-500,90,450,8),AC.m,aR(62,-510,50,470),AC.ms,aR(20,-486,8,140,4))}
+${cel(aC(-20,-270,8),AC.y)}${cel(aC(20,-270,8),AC.y)}
+${cel(aR(-120,-46,240,26,6),AC.wd,aR(-130,-32,260,20),AC.wds)}
+${cel(aR(-127,-556,254,30,9),AC.wd,aR(-130,-538,260,20),AC.wds,aR(-112,-550,150,5,2.5))}${aSpark(-44,-436,12)}`},
+  bookcase:{h:330,w:220,snd:'flip',furn:[{x1:-110,x2:110,y:-330,chars:true},{x1:-90,x2:90,y:-216},{x1:-90,x2:90,y:-112}],art:
+`${cel(aR(-110,-330,220,330,12),AC.w,aR(70,-340,50,350),AC.ws)}
+${cel(aR(-92,-312,184,296,6),AC.l,'M-92,-312 H92 V-296 H-92 Z M-92,-210 H92 V-194 H-92 Z M-92,-106 H92 V-90 H-92 Z',AC.ls)}
+${cel(aR(-88,-306,20,90,3),AC.p,aR(-76,-310,14,100),AC.ps)}${cel(aR(-68,-294,20,78,3),AC.b,aR(-56,-300,14,90),AC.bs)}${cel(aR(-48,-300,18,84,3),AC.y,aR(-38,-310,12,100),AC.ys)}
+${cel('M-28,-216 L-8,-296 L8,-292 L-12,-216 Z',AC.m,'M-2,-300 L14,-296 L-6,-210 L-16,-212 Z',AC.ms)}
+${cel(aR(30,-196,20,84,3),AC.m,aR(42,-200,12,90),AC.ms)}${cel(aR(50,-186,20,74,3),AC.p,aR(62,-190,12,80),AC.ps)}${cel(aR(70,-200,18,88,3),AC.b,aR(80,-204,12,94),AC.bs)}
+${cel(aR(-82,-74,92,58,12),AC.y,aR(-84,-40,96,30),AC.ys,aR(-72,-68,40,5,2.5))}
+${cel(aR(-104,-222,208,12,4),AC.wd,aR(-104,-214,208,6),AC.wds)}${cel(aR(-104,-118,208,12,4),AC.wd,aR(-104,-110,208,6),AC.wds)}`},
+  floorlamp:{h:392,w:120,snd:'click',furn:[],art:
+`<circle class="fglow" cx="0" cy="-340" r="120" fill="#FFF3B0"/>
+${cel(aE(0,-12,46,13),AC.wd,aE(14,-8,46,13),AC.wds)}
+${cel(aR(-6,-300,12,288,6),'#EBCB74',aR(1,-310,8,300),'#C9A048')}
+<circle class="fbulb" cx="0" cy="-296" r="13" fill="#F3E9D2" stroke="${AL}" stroke-width="3"/>
+${cel('M-58,-300 L-34,-392 L34,-392 L58,-300 Z','#BFE4F7','M6,-400 H80 V-290 H14 Z','#94C9E8','M-40,-378 L-30,-382 L-46,-312 L-54,-312 Z','fshade')}`},
+  bigplant:{h:320,w:240,snd:'rustle',furn:[],art:
+`${aLeaf('M0,-96 Q-110,-96 -120,-176 Q-50,-166 0,-96 Z','M0,-96 L-120,-176 L-140,-80 Z',AC.g)}
+${aLeaf('M0,-96 Q100,-102 118,-176 Q50,-164 0,-96 Z','M0,-96 L118,-176 L140,-80 Z',AC.g)}
+${aLeaf('M0,-96 Q-90,-146 -96,-256 Q-20,-216 0,-96 Z','M0,-96 L-96,-256 L-150,-120 Z',AC.gl)}
+${aLeaf('M0,-96 Q86,-156 84,-274 Q14,-226 0,-96 Z','M0,-96 L84,-274 L150,-120 Z',AC.gl)}
+${aLeaf('M0,-96 Q-30,-206 6,-320 Q40,-206 0,-96 Z','M0,-96 L6,-320 L60,-200 Z',AC.g)}
+${aLine('M0,-98 L-70,-221 M0,-98 L64,-238 M0,-98 L4,-296 M0,-98 L-96,-156 M0,-98 L96,-158',2.4,.45)}
+${cel('M-56,-96 L56,-96 L44,0 L-44,0 Z',AC.t,'M14,-100 H70 V4 H8 Z',AC.ts,'M-44,-84 L-36,-84 L-30,-12 L-36,-12 Z')}
+${cel(aR(-64,-112,128,22,9),AC.t,aR(-70,-100,140,14),AC.ts)}${aSpark(80,-290,10)}`},
+  rug:{h:70,w:460,snd:'boop',furn:[],art:
+`${aLine('M-226,-36 h-14 M-224,-24 h-14 M226,-36 h14 M224,-24 h14',2.6)}
+${cel(aE(0,-30,230,34),AC.l,'M-240,-30 Q0,-14 240,-30 V10 H-240 Z',AC.ls,aE(-80,-50,90,5))}
+<path d="${aE(0,-30,186,22)}" fill="none" stroke="#fff" stroke-width="5" stroke-dasharray="2 14" stroke-linecap="round"/>`},
+  tv:{h:320,w:330,snd:'click',furn:[{x1:-150,x2:150,y:-320}],art:
+`${cel(aR(-140,-16,16,16,4),AC.wd)}${cel(aR(124,-16,16,16,4),AC.wd)}
+${cel(aR(-155,-82,310,70,10),AC.w,aR(-165,-40,330,30),AC.ws,aR(-140,-76,200,6,3))}${aLine('M-52,-80 V-14 M52,-80 V-14',2.6)}
+${cel(aC(-90,-48,6),AC.y)}${cel(aC(90,-48,6),AC.y)}
+${cel(aR(-20,-104,40,24,3),'#5E5578')}
+${cel(aR(-163,-320,326,220,18),AC.dk,aR(118,-330,60,240),AC.dks)}
+<g transform="translate(-275 -620)"><g class="tvs">${tvScene(0)}</g></g>
+<path d="M-130,-302 L-70,-302 L-145,-212 L-145,-280 Z" fill="#fff" opacity=".28"/>
+<path d="${aR(-145,-302,290,184,6)}" fill="none" stroke="${AL}" stroke-width="3"/>${aSpark(152,-334,10)}`},
+  stove:{h:214,w:208,snd:'gurgle',furn:[{x1:-100,x2:100,y:-214,chars:true}],art:
+`${cel(aR(-86,-12,18,12,4),AC.svs)}${cel(aR(68,-12,18,12,4),AC.svs)}
+${cel(aR(-96,-204,192,194,14),AC.w,aR(52,-214,60,220),AC.ws,aR(-86,-130,8,80,4))}
+${cel(aR(-84,-190,168,30,8),AC.sv,aR(-84,-172,168,12),AC.svs)}
+${[[-54,AC.p],[-18,AC.y],[18,AC.m],[54,AC.b]].map(([x,c])=>cel(aC(x,-175,8),c)).join('')}
+${cel(aR(-60,-150,120,9,4.5),AC.sv)}
+${cel(aR(-74,-134,148,104,12),'#5E5578',aR(20,-144,70,124),AC.dks,'M-62,-122 L-30,-122 L-62,-86 Z')}
+${cel(aR(-104,-214,208,18,8),AC.sv,aR(-110,-204,220,12),AC.svs)}`},
+  tub:{h:200,w:400,snd:'splash',furn:[{x1:-170,x2:170,y:-150,chars:true,seat:true,snap:[-90,90]}],art:
+`${cel(aC(-130,-14,13),AC.y,aC(-122,-8,12),AC.ys)}${cel(aC(130,-14,13),AC.y,aC(138,-8,12),AC.ys)}
+<path d="M-176,-160 V-206 Q-176,-226 -156,-226 H-136" fill="none" stroke="${AL}" stroke-width="13" stroke-linecap="round"/><path d="M-176,-160 V-206 Q-176,-226 -156,-226 H-136" fill="none" stroke="${AC.sv}" stroke-width="7" stroke-linecap="round"/>
+${cel('M-184,-152 H184 Q184,-34 112,-26 H-112 Q-184,-34 -184,-152 Z',AC.w,'M-200,-96 Q0,-80 200,-98 V-10 H-200 Z',AC.ws,'M-160,-134 Q-110,-136 -50,-138 Q-110,-130 -160,-126 Z')}
+${cel(aR(-196,-166,392,24,12),AC.w,aR(-200,-150,400,10),AC.ws)}
+${[[-120,-182,15],[-92,-192,10],[104,-180,12],[130,-196,8]].map(([x,y,r])=>cel(aC(x,y,r),'#EEF7FF',aC(x+r*.4,y+r*.4,r*.8),'#C9E2F7')+aLine(`M${x-r*.5},${y-r*.2} Q${x-r*.4},${y-r*.6} ${x},${y-r*.6}`,2.4,1).replace(AL,'#fff')).join('')}
+${cel(aE(178,-180,20,13),AC.y,aE(184,-174,20,11),AC.ys)}${cel(aC(168,-198,10),AC.y,aC(173,-194,9),AC.ys)}
+<path d="M158,-200 L150,-197 L158,-193 Z" fill="#FF9B54" stroke="${AL}" stroke-width="2"/><circle cx="166" cy="-201" r="2" fill="${AL}"/>`}
 });
 const FURN_ORDER=['bed','sofa','armchair','table','chair','wardrobe','bookcase','floorlamp','bigplant','rug','tv','stove','tub'];
 const BOX_ORDER=['apple','banana','pizza','cupcake','carrot','milk','juice','bone','ball','teddy','duck','blocks','car','dino','book','soap','brush','plant','can'];
@@ -1900,6 +1934,7 @@ svg.innerHTML=`<defs>
   <radialGradient id="holeG"><stop offset="0" stop-color="#000"/><stop offset=".45" stop-color="#000"/><stop offset="1" stop-color="#fff"/></radialGradient>
   <mask id="nightMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1440" height="1000"><rect width="1440" height="1000" fill="#fff"/><circle id="lampHole" cx="910" cy="430" r="440" fill="url(#holeG)" opacity="0"/><g id="holes" fill="#000"></g></mask>
   <filter id="lift" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="22" stdDeviation="9" flood-color="#2E2A4F" flood-opacity=".3"/></filter>
+  ${ACL}
 </defs><g id="cam"><g id="roomL"></g><g id="ents"></g></g><rect id="nightRect" width="1440" height="1000" fill="#1B1650" opacity="0" mask="url(#nightMask)" pointer-events="none"/><g id="cam2" pointer-events="none"><circle id="lampGlow" cx="910" cy="400" r="300" fill="url(#glowG)" opacity="0"/><g id="parts"></g></g>`;
 const roomL=$('#roomL'), entsL=$('#ents'), partsL=$('#parts');
 const G={nightRect:$('#nightRect'),lampHole:$('#lampHole'),lampGlow:$('#lampGlow'),holes:$('#holes'),cam:$('#cam'),cam2:$('#cam2')};
@@ -3160,7 +3195,7 @@ function tapEnt(e){
     const snd=ITEMS[e.type].snd;
     if(e.heldBy){ A.pop(.9); return; }
     if(e.type==='wardrobe'){ A.creak(); openDress(lastChar); return; }
-    if(e.type==='floorlamp'){ e.on=!e.on; e.el.querySelector('.fshade').setAttribute('fill',e.on?'#FFE36E':'#4CB8D8'); e.el.querySelector('.fbulb').setAttribute('fill',e.on?'#FFF6C9':'#F3E9D2'); A.click(); if(e.on) burst('star',e.x,e.y-340,3); return; }
+    if(e.type==='floorlamp'){ e.on=!e.on; e.el.classList.toggle('on',e.on); A.click(); if(e.on) burst('star',e.x,e.y-340,3); return; }
     if(e.type==='tv'){ e.ch=((e.ch||0)+1)%TVN; e.el.querySelector('.tvs').innerHTML=tvScene(e.ch); A.click(); A.boop(); return; }
     if(e.type==='ball'){ e.hopT=now; A.boing(); }
     else if(e.type==='car'&&!e.fall){ e.roll=(e.x>viewCX()?-1:1)*rand(650,900); A.vroom(); }
