@@ -73,7 +73,7 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:4px}
 .tb .x{display:none}
 .tb.muted .x{display:inline}
 .tb.muted .w{display:none}
-body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:beckon .7s ease-in-out infinite alternate}
+body.dragging .rt:not([aria-pressed="true"]){animation:beckon .7s ease-in-out infinite alternate}
 @keyframes beckon{from{transform:scale(1)}to{transform:scale(1.1)}}
 .spin{transform-box:fill-box;transform-origin:center;animation:spin 2.4s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -142,7 +142,7 @@ body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:
   .dress-left{border-right:0;border-bottom:5px solid var(--ink);flex-direction:row;flex-wrap:wrap;justify-content:center;padding:12px}
   #preview{flex:none;width:110px;height:150px}
 }
-@media (prefers-reduced-motion:reduce){ .tb,.rt,.sw,.tile{transition:none} #world.enter{animation:none} body.dragging .rt,body.dragging-item #bBox,#world .lotplus,.spin{animation:none} }
+@media (prefers-reduced-motion:reduce){ .tb,.rt,.sw,.tile{transition:none} #world.enter{animation:none} body.dragging .rt,#world .lotplus,.spin{animation:none} }
 </style>
 </head>
 <body>
@@ -179,12 +179,6 @@ body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:
   </button>
   <button class="tb" id="bDress" type="button" aria-label="Change looks">
     <svg viewBox="0 0 48 48"><ellipse cx="24" cy="35" rx="20" ry="7" fill="#FF7A5C" stroke="#2E2A4F" stroke-width="3.5"/><path d="M13 34 V15 Q13 9 19 9 H29 Q35 9 35 15 V34 Z" fill="#5A4FA0" stroke="#2E2A4F" stroke-width="3.5" stroke-linejoin="round"/><rect x="13" y="25" width="22" height="6" fill="#FFD15C" stroke="#2E2A4F" stroke-width="3"/><circle cx="31" cy="28" r="2.5" fill="#FF7A5C"/></svg>
-  </button>
-  <button class="tb" id="bBox" type="button" data-drop="box" aria-label="Toy box">
-    <svg viewBox="0 0 48 48"><circle cx="17" cy="15" r="7" fill="#FF7A5C" stroke="#2E2A4F" stroke-width="3.5"/><path d="M30,5 l2.6,5.4 5.9.8-4.3,4.1 1,5.9-5.2-2.8-5.2,2.8 1-5.9-4.3-4.1 5.9-.8z" fill="#FFD15C" stroke="#2E2A4F" stroke-width="3" stroke-linejoin="round"/><rect x="7" y="22" width="34" height="20" rx="5" fill="#4CB8D8" stroke="#2E2A4F" stroke-width="3.5"/><path d="M5,21 H43" stroke="#2E2A4F" stroke-width="5" stroke-linecap="round"/><rect x="20" y="27" width="8" height="6" rx="2" fill="#FFD15C" stroke="#2E2A4F" stroke-width="2.5"/></svg>
-  </button>
-  <button class="tb" id="bPaint" type="button" aria-label="Paint the walls">
-    <svg viewBox="0 0 48 48"><rect x="6" y="7" width="30" height="13" rx="5" fill="#FF9EC4" stroke="#2E2A4F" stroke-width="3.5"/><path d="M36,13 H41 V26 H24 V31" fill="none" stroke="#2E2A4F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><rect x="20" y="30" width="8" height="13" rx="3" fill="#2E2A4F"/></svg>
   </button>
   <button class="tb" id="bSound" type="button" aria-label="Sound" aria-pressed="true">
     <svg viewBox="0 0 48 48"><path d="M7 19h8l10-8v26l-10-8H7z" fill="#FFD15C" stroke="#2E2A4F" stroke-width="4" stroke-linejoin="round"/><path class="w" d="M31 18c3 3.2 3 8.8 0 12M36 13c6 6 6 16 0 22" fill="none" stroke="#2E2A4F" stroke-width="4" stroke-linecap="round"/><path class="x" d="M31 19l10 10M41 19 31 29" fill="none" stroke="#2E2A4F" stroke-width="4" stroke-linecap="round"/></svg>
@@ -1303,29 +1297,142 @@ function tvScene(ch){
   if(ch===4) return `<rect x="${bx}" y="${by}" width="290" height="184" fill="#FFE7A0"/><circle cx="${bx+145}" cy="${by+92}" r="62" fill="#FFD15C" ${SW} stroke-width="5"/><circle cx="${bx+124}" cy="${by+80}" r="7" fill="${K}"/><circle cx="${bx+166}" cy="${by+80}" r="7" fill="${K}"/><path d="M${bx+118},${by+108} Q${bx+145},${by+134} ${bx+172},${by+108}" ${SW} stroke-width="5" fill="none" stroke-linecap="round"/>`;
   return `<rect x="${bx}" y="${by}" width="290" height="184" fill="#7CCBFF"/><circle cx="${bx+230}" cy="${by+50}" r="26" fill="#FFD15C" ${SW} stroke-width="4"/><path d="M${bx},${by+150} Q${bx+90},${by+100} ${bx+170},${by+140} T${bx+290},${by+130} V${by+184} H${bx} Z" fill="#7ED957" ${SW} stroke-width="4"/>`;
 }
-// A built home starts empty (walls, door, window, ceiling lamp): kids fill it from the furniture button. It is two screens wide and scrolls.
-const HOME_W=2880;
-function homeArt(b){
-  const P=HOMES[b.c%HOMES.length], W=HOME_W;
-  const pat=`<rect class="wpA" width="72" height="72"/><rect class="wpB" width="36" height="72"/><path d="${heart(54,22,7)}" fill="#FFF8EE" opacity=".55"/><circle cx="18" cy="54" r="4" fill="#FFF8EE" opacity=".55"/>`;
-  return wallFloor(pat,72,woodFloor('#C98A52','#B0733F',W),'',W)+`
-<rect x="70" y="330" width="220" height="462" rx="16" fill="#FFF8EE" ${SW} stroke-width="5"/>
-<rect x="92" y="352" width="176" height="440" rx="10" fill="${P.d}" ${SW} stroke-width="5"/>
-<rect x="116" y="380" width="128" height="150" rx="10" fill="none" ${SW} stroke-width="3" opacity=".35"/><rect x="116" y="560" width="128" height="200" rx="10" fill="none" ${SW} stroke-width="3" opacity=".35"/>
-<path d="${heart(180,455,24)}" fill="#FFF8EE" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<circle cx="244" cy="590" r="11" fill="#FFD15C" ${SW} stroke-width="4"/>
-<rect x="96" y="808" width="168" height="26" rx="10" fill="${P.r}" ${SW} stroke-width="4"/>
-${win(560,100,1,P.r,P.d)}
-${hangLamp(1440,P.r)}
-<g data-hot="wiggle" class="hot" id="hot-picture" data-piv="2160 138">
-  <path d="M2160,138 L2117,160 M2160,138 L2203,160" ${SW} stroke-width="3"/><circle cx="2160" cy="136" r="5" fill="${K}"/>
-  <rect x="2103" y="158" width="114" height="124" rx="8" fill="${P.r}" ${SW} stroke-width="5"/>
-  <rect x="2113" y="168" width="94" height="104" rx="4" fill="#FFF8EE" ${SW} stroke-width="3"/>
-  <path d="${heart(2160,224,24)}" fill="#FF7A5C" ${SW} stroke-width="4"/>
-</g>
-<g data-hot="wiggle" class="hot" id="hot-star" data-piv="2560 300">
-  <path d="${star5(2560,300,56,26)}" fill="#FFD15C" ${SW} stroke-width="5" stroke-linejoin="round"/>
-</g>`;
+// A built home starts empty (front door, windows, lamps): kids fill it from the furniture button. Every storey is its own
+// room ("b<n>" for the ground floor, "b<n>f2", "b<n>f3" above) that scrolls through several rooms joined by open doorways.
+// Homes with more than one storey get an elevator at the right end of every floor. Each kind of room (HR) has its own
+// wallpaper motif and colour and its own floor, so kids can tell the rooms apart.
+// The rooms are drawn in the anime look (thin AL lines, cel shadows), like the furniture.
+const HRW=1300, HLIFT=520, LIFT_T=.5;
+const HFLOORS={cottage:2,cube:2,town:3,aframe:2,dome:2,bungalow:1,tech:2};
+const HLAYOUT={1:[['living','kitchen','bedroom','bathroom']],2:[['living','kitchen','playroom'],['bedroom','bathroom','kids']],
+  3:[['living','kitchen','dining'],['bedroom','bathroom','kids'],['playroom','music','library']]};
+// pal: which WALLS colour the room starts with (the paint roller shifts every room together, so they stay different)
+const HR={living:{pal:1,mo:'heart',fl:'wood'},kitchen:{pal:0,mo:'tile',fl:'checker'},dining:{pal:3,mo:'stripe',fl:'darkwood'},
+  bedroom:{pal:2,mo:'moon',fl:'carpet'},bathroom:{pal:4,mo:'bubble',fl:'tiles'},kids:{pal:5,mo:'cloud',fl:'stars'},
+  playroom:{pal:3,mo:'dot',fl:'foam'},music:{pal:0,mo:'note',fl:'darkwood'},library:{pal:1,mo:'diamond',fl:'green'}};
+const homeFloors=b=>HLAYOUT[HFLOORS[HOMES[b.c%HOMES.length].st]||1];
+const floorId=(b,f)=>f?`${b.id}f${f+1}`:b.id;
+const homeLampX=rooms=>Math.floor(rooms.length/2)*HRW+HRW/2+380;
+// cel() for art drawn after start-up (rooms): the clip path goes inline next to the shape instead of into the stage defs.
+let hcN=0;
+function celIn(d,fill,sd,sfill,hd){ const id='hc'+(hcN++); return `<clipPath id="${id}"><path d="${d}"/></clipPath>`+celBody(id,d,fill,sd,sfill,hd); }
+function hPat(t,i){
+  const B=`class="wpB h${i}"`, A=`class="wpA h${i}"`, W='fill="#fff" opacity=".6"'; let m='';
+  switch(HR[t].mo){
+    case 'heart': m=`<path ${B} d="${heart(40,40,10)}"/><circle cx="12" cy="72" r="4" ${W}/>`; break;
+    case 'tile': m=`<rect ${B} width="80" height="4"/><rect ${B} width="4" height="80"/><rect ${B} y="38" width="80" height="4"/><rect ${B} x="38" width="4" height="80"/><rect x="10" y="10" width="8" height="3" ${W}/>`; break;
+    case 'stripe': m=`<rect ${B} width="26" height="80"/><rect x="34" width="4" height="80" ${W}/>`; break;
+    case 'moon': m=`<circle ${B} cx="28" cy="28" r="12"/><circle ${A} cx="34" cy="23" r="11"/><path ${B} d="${star5(62,62,8,3.5)}"/>`; break;
+    case 'bubble': m=`<circle ${B} cx="24" cy="26" r="13"/><circle ${A} cx="24" cy="26" r="8"/><circle ${B} cx="62" cy="60" r="7"/><circle cx="20" cy="21" r="3" ${W}/>`; break;
+    case 'cloud': m=`<g ${B}><circle cx="30" cy="34" r="10"/><circle cx="42" cy="28" r="13"/><circle cx="54" cy="35" r="9"/><rect x="28" y="34" width="28" height="10"/></g>`; break;
+    case 'dot': m=`<circle ${B} cx="20" cy="20" r="9"/><circle ${B} cx="60" cy="60" r="9"/><circle cx="17" cy="17" r="3" ${W}/>`; break;
+    case 'note': m=`<g ${B}><circle cx="30" cy="54" r="8"/><rect x="35" y="22" width="4" height="32"/><path d="M35,22 Q50,26 48,40 Q46,30 39,30 Z"/></g>`; break;
+    case 'diamond': m=`<path ${B} d="M40,18 L56,40 L40,62 L24,40 Z"/><circle cx="8" cy="8" r="3" ${W}/>`; break;
+  }
+  return `<pattern id="hp${i}" width="80" height="80" patternUnits="userSpaceOnUse"><rect ${A} width="80" height="80"/>${m}</pattern>`;
+}
+// Floors: wood, tiles, carpet or play mats, each a pattern so a long room stays light.
+function hFloorPat(kind,i){
+  const id=`hf${i}`, P=(w,h,s)=>`<pattern id="${id}" width="${w}" height="${h}" patternUnits="userSpaceOnUse" y="792">${s}</pattern>`;
+  const wood=(a,l)=>P(260,92,`<rect width="260" height="92" fill="${a}"/><rect y="43" width="260" height="3" fill="${l}"/><rect y="89" width="260" height="3" fill="${l}"/><rect width="3" height="46" fill="${l}"/><rect x="130" y="46" width="3" height="46" fill="${l}"/>`);
+  const dots=(a,d)=>P(40,40,`<rect width="40" height="40" fill="${a}"/><circle cx="20" cy="20" r="3.5" fill="${d}"/>`);
+  switch(kind){
+    case 'wood': return wood('#E9C79F','#D2AC80');
+    case 'darkwood': return wood('#D8A878','#BC8A5A');
+    case 'checker': return P(104,104,`<rect width="104" height="104" fill="#FFFFFF"/><rect width="52" height="52" fill="#D8F0E6"/><rect x="52" y="52" width="52" height="52" fill="#D8F0E6"/>`);
+    case 'tiles': return P(44,44,`<rect width="44" height="44" fill="#EAF6FD"/><rect width="44" height="3" fill="#C3E2F4"/><rect width="3" height="44" fill="#C3E2F4"/>`);
+    case 'carpet': return dots('#DCCFF7','#C8B6F0');
+    case 'green': return dots('#CFEBC2','#B5DCA6');
+    case 'stars': return P(60,60,`<rect width="60" height="60" fill="#FFDCE8"/><path d="${star5(30,30,7,3)}" fill="#fff"/>`);
+    case 'foam': return P(208,208,`<rect width="104" height="104" fill="#FFB3B3"/><rect x="104" width="104" height="104" fill="#FFE08A"/><rect y="104" width="104" height="104" fill="#B8E6A8"/><rect x="104" y="104" width="104" height="104" fill="#A9D8F5"/>`);
+  }
+}
+function hWin(cx){
+  return `${celIn(aR(cx-150,218,300,250,12),'#FFFFFF',aR(cx+100,208,60,270),AC.ws)}<rect x="${cx-132}" y="236" width="264" height="214" rx="6" fill="#A9DCFA"/>
+<g fill="#fff"><circle cx="${cx-70}" cy="306" r="20"/><circle cx="${cx-44}" cy="294" r="26"/><circle cx="${cx-16}" cy="308" r="18"/><rect x="${cx-84}" y="306" width="78" height="20"/></g>
+<path d="M${cx},236 V450 M${cx-132},343 H${cx+132}" stroke="#fff" stroke-width="10"/><path d="M${cx-120},244 L${cx-80},244 L${cx-128},300 L${cx-128},258 Z" fill="#fff" opacity=".45"/>
+<path d="${aR(cx-132,236,264,214,6)}" fill="none" stroke="${AL}" stroke-width="3"/>${celIn(aR(cx-168,458,336,20,7),AC.wd,aR(cx-180,470,360,12),AC.wds)}`;
+}
+// An inside wall between two rooms, seen cut through: a strip from the ceiling down to the top of the doorway.
+function hDoorway(x){ return `${celIn(aR(x-26,0,52,438,0),'#FFF8EE',aR(x+6,-10,30,460),'#E8E0D0')}${celIn(aR(x-46,424,92,20,6),AC.wd,aR(x-50,436,100,12),AC.wds)}${celIn(aR(x-40,784,80,14,5),AC.wd)}`; }
+function hFrontDoor(P){
+  return `${celIn(aR(70,330,220,462,16),'#FFFFFF',aR(250,320,60,480),AC.ws)}${celIn(aR(92,352,176,440,10),P.d,aR(220,340,60,460),'rgba(74,59,92,.18)',aR(102,366,7,160,3.5))}
+${celIn(aR(140,384,80,90,40),'#A9DCFA',null,null,`M150,404 L172,394 L148,440 Z`)}${celIn(aC(244,590,11),AC.y)}${celIn(aR(96,798,168,24,10),P.r)}`;
+}
+// The elevator lobby at the right end of every floor: the open cabin (a surface friends can stand on), a light showing
+// which floor this is, and a panel with a big button per floor (dots, not numbers). The sliding doors are a prop so they
+// close in front of whoever is riding.
+function hLobby(x,f,n){
+  let s=`<rect x="${x}" width="${HLIFT}" height="26" fill="#D9D3EA"/><rect x="${x}" y="26" width="${HLIFT}" height="740" fill="#EEEAF6"/>`;
+  for(let k=1;k<5;k++) s+=`<rect x="${x+k*HLIFT/5}" y="26" width="3" height="740" fill="#E2DCEF"/>`;
+  s+=`<rect x="${x}" y="792" width="${HLIFT}" height="208" fill="#E6E2F0"/>${[840,892,944].map(y=>`<rect x="${x}" y="${y}" width="${HLIFT}" height="3" fill="#D4CEE4"/>`).join('')}`;
+  s+=celIn(aR(x+40,330,300,496,16),'#D5DAE6',aR(x+300,320,60,520),'#B8BFD0',aR(x+52,344,8,300,4));
+  s+=celIn(aR(x+70,360,240,462,6),'#FFF4DF',aR(x+60,700,260,140),'#F3E3C2');
+  s+=celIn(aR(x+100,392,180,170,8),'#DFF1FB',null,null,`M${x+116},402 L${x+150},402 L${x+110},462 Z`);
+  s+=`<path d="M${x+78},640 H${x+302}" stroke="${AL}" stroke-width="9" stroke-linecap="round"/><path d="M${x+78},640 H${x+302}" stroke="#F2C35A" stroke-width="4" stroke-linecap="round"/>`;
+  s+=`<rect x="${x+70}" y="806" width="240" height="16" fill="#C9B48E"/>${aLine(`M${x+70},806 H${x+310}`,2.4)}`;
+  s+=celIn(aR(x+110,272,160,46,23),AC.dk);
+  for(let k=0;k<n;k++) s+=`<circle cx="${x+190+(k-(n-1)/2)*40}" cy="295" r="11" fill="${k===f?'#FFD15C':'#6E6890'}" stroke="${AL}" stroke-width="2.5"/>`;
+  s+=celIn(aR(x+380,420,104,n*92+28,18),'#D5DAE6',aR(x+450,410,50,n*92+60),'#B8BFD0');
+  for(let k=0;k<n;k++){
+    const fl=n-1-k, bx=x+432, cy=480+k*92, on=fl===f;
+    const dots=[...Array(fl+1)].map((_,j)=>`<circle cx="${bx+(j-fl/2)*15}" cy="${cy}" r="5.5" fill="${AL}"/>`).join('');
+    s+=`<g data-hot="liftbtn" data-f="${fl}" class="hot" id="hot-lb${fl}" data-piv="${bx} ${cy}"><rect x="${bx-52}" y="${cy-46}" width="104" height="92" fill="transparent"/>${celIn(aC(bx,cy,36),on?'#FFE58F':'#FFFFFF',aC(bx+12,cy+12,36),on?'#F2C35A':'#E4E9F2')}${dots}</g>`;
+  }
+  return s;
+}
+function liftDoors(x){ return {y:823,lift:true,art:()=>{
+  const o=liftO(), id='hc'+(hcN++), door=dx=>celIn(aR(x+dx,360,120,462,0),'#E4E9F2',aR(x+dx+80,350,50,480),'#C9D0DE',aR(x+dx+14,380,6,200,3));
+  return `<clipPath id="${id}"><rect x="${x+70}" y="360" width="240" height="462"/></clipPath><g clip-path="url(#${id})"><g class="ldL" transform="translate(${-120*o} 0)">${door(70)}</g><g class="ldR" transform="translate(${120*o} 0)">${door(190)}</g></g>`;
+}}; }
+function homeFloorArt(b,f){
+  const L=homeFloors(b), rooms=L[f], n=L.length, E0=rooms.length*HRW, W=E0+(n>1?HLIFT:0), P=HOMES[b.c%HOMES.length];
+  let defs='', s='';
+  rooms.forEach((t,i)=>{
+    const x0=i*HRW, cx=x0+HRW/2;
+    defs+=hPat(t,i)+hFloorPat(HR[t].fl,i);
+    s+=`<rect class="wpTop h${i}" x="${x0}" width="${HRW}" height="26"/><rect x="${x0}" y="26" width="${HRW}" height="740" fill="url(#hp${i})"/><rect x="${x0}" y="792" width="${HRW}" height="208" fill="url(#hf${i})"/>`;
+    s+=hWin(cx);
+  });
+  if(n>1) s+=hLobby(E0,f,n);
+  s+=`<rect y="792" width="${W}" height="16" fill="${AL}" opacity=".08"/><rect y="766" width="${W}" height="26" fill="#FFFFFF"/>${aLine(`M0,26 H${W} M0,766 H${W} M0,792 H${W}`,3)}`;
+  for(let i=1;i<rooms.length+(n>1?1:0);i++) s+=hDoorway(i*HRW);
+  if(f===0) s+=hFrontDoor(P);
+  return `<defs>${defs}</defs>${s}${hangLamp(homeLampX(rooms),P.r)}`;
+}
+function regHome(b){
+  for(const k in ROOMS) if(ROOMS[k].bld===b) delete ROOMS[k];
+  const L=homeFloors(b), n=L.length;
+  L.forEach((rooms,f)=>{
+    const id=floorId(b,f), E0=rooms.length*HRW, lx=homeLampX(rooms);
+    const surf=rooms.map((t,i)=>({id:'sill'+i,x1:i*HRW+HRW/2-165,x2:i*HRW+HRW/2+165,y:460}));
+    if(n>1) surf.push({id:'lift',x1:E0+80,x2:E0+300,y:822,chars:true,snap:[E0+150,E0+230]});
+    const r={art:()=>homeFloorArt(b,f),paints:WALLS,defPaint:0,lamp:[lx,300],glow:[lx,320],surf,props:n>1?[liftDoors(E0)]:[],bld:b,map:{},
+      w:E0+(n>1?HLIFT:0),home:{f,n,rooms,E0}};
+    for(const s of surf) r.map[s.id]=s;
+    ROOMS[id]=r;
+    const p=S.paint[id]; if(!(Number.isInteger(p)&&p>=0&&p<WALLS.length)) S.paint[id]=0;
+  });
+}
+/* The elevator: tap a floor button, the doors slide shut, everyone standing in the cabin rides along, and the doors open
+   on the new floor. S.lift = {ph:'close'|'open', t, to, room}. */
+function liftO(){ const L=S.lift; return !L?1:L.ph==='close'?1-Math.min(1,L.t/LIFT_T):Math.min(1,L.t/LIFT_T); }
+function liftGo(f){
+  const r=ROOMS[S.room], h=r.home; if(!h||h.n<2||S.lift) return;
+  if(f===h.f){ A.chime(); return; }
+  S.lift={ph:'close',t:0,to:floorId(r.bld,f),room:S.room}; A.click();
+}
+function stepLift(dt){
+  const L=S.lift; if(S.room!==L.room){ S.lift=null; return; }
+  L.t+=dt;
+  if(L.ph==='close'&&L.t>=LIFT_T){
+    for(const e of E) if(e.room===L.room&&e.surf==='lift'&&!e.drag){ e.room=L.to; const h=e.holding&&byId[e.holding]; if(h) h.room=L.to; }
+    S.lift={ph:'open',t:0,room:L.to}; switchRoom(L.to,true);
+    S.camX=clampCam(ROOMS[L.to].home.E0+190-720); A.chime(); scheduleSave(); return;
+  }
+  if(L.ph==='open'&&L.t>=LIFT_T) S.lift=null;
+  const p=S.props.find(p=>p.lift); if(!p) return;
+  const o=liftO(); p.el.querySelector('.ldL').setAttribute('transform',`translate(${(-120*o).toFixed(1)} 0)`); p.el.querySelector('.ldR').setAttribute('transform',`translate(${(120*o).toFixed(1)} 0)`);
 }
 function buy(t,x,y,i){ return `<g data-hot="buy" data-type="${t}" class="hot" id="buy${i}" data-piv="${x} ${y}"><rect x="${x-44}" y="${y-90}" width="88" height="94" fill="transparent"/><g transform="translate(${x} ${y}) scale(.72)">${ITEMS[t].art}</g></g>`; }
 function shopArt(b,kind){
@@ -1365,10 +1472,10 @@ ${[0,1,2,3,4].map(i=>`<rect x="${780+i*76}" y="630" width="40" height="142" rx="
 </g>
 ${goods}`;
 }
-const HOME_SURF=[{id:'sill',x1:545,x2:855,y:376}];
 const SHOP_SURF=[{id:'sill',x1:462,x2:702,y:331},{id:'counter',x1:760,x2:1016,y:598,chars:true}];
-const BROOM={home:{art:homeArt,lamp:[1440,300],glow:[1440,320],surf:HOME_SURF,w:HOME_W},shop:{art:shopArt,lamp:[960,300],glow:[960,320],surf:SHOP_SURF}};
+const BROOM={shop:{art:shopArt,lamp:[960,300],glow:[960,320],surf:SHOP_SURF}};
 function regBld(b){
+  if(b.type==='home'){ regHome(b); return; }
   const T=BROOM[b.type], r={art:()=>T.art(b),paints:WALLS,defPaint:(b.c*2+(b.type==='shop'?1:0))%WALLS.length,lamp:T.lamp,glow:T.glow,surf:T.surf,props:[],bld:b,map:{},w:T.w};
   for(const s of r.surf) r.map[s.id]=s;
   ROOMS[b.id]=r;
@@ -1764,6 +1871,9 @@ const aC=(cx,cy,r)=>aE(cx,cy,r,r);
 let ACL='', acN=0;
 function cel(d,fill,sd,sfill,hd,cls){
   const id='ac'+(acN++); ACL+=`<clipPath id="${id}"><path d="${d}"/></clipPath>`;
+  return celBody(id,d,fill,sd,sfill,hd,cls);
+}
+function celBody(id,d,fill,sd,sfill,hd,cls){
   return `<path d="${d}" fill="${fill}"${cls?` class="${cls}"`:''}/>`+(sd||hd?`<g clip-path="url(#${id})">${sd?`<path d="${sd}" fill="${sfill}"${cls?` class="${cls}S"`:''}/>`:''}${hd?`<path d="${hd}" fill="#fff" opacity=".85"/>`:''}</g>`:'')
     +`<path d="${d}" fill="none" stroke="${AL}" stroke-width="3" stroke-linejoin="round"/>`;
 }
@@ -1972,7 +2082,7 @@ const wOf=e=>(ROOMS[e.room]&&ROOMS[e.room].w)||1440;
 const clampCam=x=>clamp(x,0,(ROOMS[S.room].w||1440)-1440);
 const camNow=()=>ROOMS[S.room].w?S.camX:0;
 const viewCX=()=>camNow()+720;
-const bldOfRoom=room=>HONEY.includes(room)?'honey':!ROOMS[room]?null:ROOMS[room].lm||(ROOMS[room].bld?room:null);
+const bldOfRoom=room=>HONEY.includes(room)?'honey':!ROOMS[room]?null:ROOMS[room].lm||(ROOMS[room].bld?ROOMS[room].bld.id:null);
 const roomFor=bid=>bid==='honey'?S.homeRoom:LM[bid]?(S.floor[bid]||LM[bid].floors[0]):bid;
 function bldX(bid){ if(bid==='honey') return lotX(HONEY_LOT); if(LM[bid]) return LM[bid].x; const b=S.blds.find(b=>b.id===bid); return b?lotX(b.lot):viewCX(); }
 
@@ -2038,6 +2148,8 @@ function loadSaved(){ try{ const j=JSON.parse(localStorage.getItem(KEY)||'null')
 /* ================= Rooms on screen ================= */
 function applyPaint(){
   const r=ROOMS[S.room], P=r.paints[S.paint[S.room]];
+  // a home floor: each room keeps its own colour, all shifted together by the roller
+  if(r.home){ r.home.rooms.forEach((t,i)=>{ const Q=r.paints[(S.paint[S.room]+HR[t].pal)%r.paints.length]; [['wpA',Q[0]],['wpB',Q[1]],['wpTop',Q[2]]].forEach(([c,col])=>roomL.querySelectorAll(`.${c}.h${i}`).forEach(el=>el.setAttribute('fill',col))); }); updateTabs(); return; }
   [['wpA',P[0]],['wpB',P[1]],['wpTop',P[2]]].forEach(([c,col])=>roomL.querySelectorAll('.'+c).forEach(el=>el.setAttribute('fill',col)));
   updateTabs();
 }
@@ -2061,7 +2173,7 @@ function buildRoom(){
   const r=ROOMS[S.room];
   roomL.innerHTML=r.art();
   entsL.innerHTML=''; S.props=[];
-  for(const p of r.props){ const g=document.createElementNS(NS,'g'); g.setAttribute('pointer-events','none'); g.innerHTML=p.art(); S.props.push({y:p.y,el:g}); }
+  for(const p of r.props){ const g=document.createElementNS(NS,'g'); g.setAttribute('pointer-events','none'); g.innerHTML=p.art(); S.props.push({y:p.y,el:g,lift:p.lift}); }
   R={}; ['sky','moonCut','dayBits','nightBits','shade','bulb','fridgeIn','fridgeDoor','hourH','minH','chestLid','swingG','bfly','bwings','mobileG','sinkWater','tubWater','clouds','para','birds','blds','boardArt','easelArt','puppet','pcurL','pcurR']
     .forEach(id=>{ R[id]=roomL.querySelector('#'+id); });
   G.holes.innerHTML=''; drawTown();
@@ -2090,14 +2202,14 @@ function switchRoom(id,quiet){
   ptrs.clear(); updateDragging();
   for(const e of E) e.wantFood=false;
   const from=S.room;
-  if(id!=='town') S.buildMode=false;
+  if(id!=='town') S.buildMode=false; else S.viaMap=false;
   if(HONEY.includes(id)) S.homeRoom=id;
   if(ROOMS[id].lm) S.floor[ROOMS[id].lm]=id;
   S.follow=null;
   if(S.hoverB) setHoverB(null);
   S.room=id;
   // Back in town, look at the building we came out of; a wide home opens in its middle.
-  if(ROOMS[id].w){ const b=id==='town'&&bldOfRoom(from); S.camX=clampCam(b?bldX(b)-720:id==='town'?S.camX:(ROOMS[id].w-1440)/2); S.camV=0; S.camTo=null; }
+  if(ROOMS[id].w){ const b=id==='town'&&bldOfRoom(from); S.camX=clampCam(b?bldX(b)-720:id==='town'?S.camX:ROOMS[id].home?0:(ROOMS[id].w-1440)/2); S.camV=0; S.camTo=null; }
   buildRoom();
   if(!quiet) A.whoosh();
   scheduleSave();
@@ -2116,7 +2228,7 @@ function updateUI(){
   $('#bBack').hidden=town;
   const lm=ROOMS[S.room].lm;
   document.querySelectorAll('#rooms [data-room]').forEach(b=>{ if(b.id!=='bBack') b.hidden=b.dataset.lm?b.dataset.lm!==lm:!honey; });
-  $('#bBuild').hidden=!town; $('#bPaint').hidden=town;
+  $('#bBuild').hidden=!town;
   const bl=ROOMS[S.room].bld; $('#bFurn').hidden=!(bl&&bl.type==='home');
   $('#bBuild').setAttribute('aria-pressed',String(!!S.buildMode));
 }
@@ -2158,14 +2270,21 @@ function addBld(lot,type,c){
 }
 function changeBld(bid,type,c){
   const b=S.blds.find(b=>b.id===bid); if(!b) return;
-  if(b.type!==type||b.c!==c) delete S.paint[bid];
-  b.type=type; b.c=c; regBld(b); built(b);
+  const old=bldRooms(b), changed=b.type!==type||b.c!==c;
+  for(const id of old){ delete ROOMS[id]; if(changed) delete S.paint[id]; }
+  b.type=type; b.c=c; regBld(b);
+  // a home with fewer storeys now: whoever was upstairs comes down to the ground floor
+  for(const e of E) if(old.includes(e.room)&&!ROOMS[e.room]){ e.room=bid; e.surf=null; e.fall=null; if(!e.heldBy){ e.x=clamp(e.x,80,ROOMS[bid].w?ROOMS[bid].w-80:1360); e.y=420; } }
+  for(const id of old) if(!ROOMS[id]) delete S.lamps[id];
+  built(b);
 }
+// Every room a building has (a home has one per storey).
+const bldRooms=b=>Object.keys(ROOMS).filter(k=>ROOMS[k].bld===b);
 function razeBld(bid){
-  const b=S.blds.find(b=>b.id===bid); if(!b) return; const x=lotX(b.lot);
-  for(const e of E.filter(e=>e.room===bid&&isFurn(e))) removeEnt(e,true);
-  for(const e of E) if(e.room===bid){ e.room='town'; e.surf=null; e.fall=null; e.eat=null; e.eatBy=null; if(!e.heldBy){ e.x=clamp(x+rand(-120,120),80,TW-80); e.y=420; startFall(e); } }
-  S.blds=S.blds.filter(o=>o!==b); delete ROOMS[bid]; delete S.paint[bid]; delete S.lamps[bid];
+  const b=S.blds.find(b=>b.id===bid); if(!b) return; const x=lotX(b.lot), rooms=bldRooms(b);
+  for(const e of E.filter(e=>rooms.includes(e.room)&&isFurn(e))) removeEnt(e,true);
+  for(const e of E) if(rooms.includes(e.room)){ e.room='town'; e.surf=null; e.fall=null; e.eat=null; e.eatBy=null; if(!e.heldBy){ e.x=clamp(x+rand(-120,120),80,TW-80); e.y=420; startFall(e); } }
+  S.blds=S.blds.filter(o=>o!==b); for(const id of rooms){ delete ROOMS[id]; delete S.paint[id]; delete S.lamps[id]; }
   drawTown(); sortZ(); A.whoosh();
   for(let i=0;i<10;i++) spawn('steam',x+rand(-140,140),rand(560,780),{vx:rand(-80,80),vy:rand(-120,-50),life:1,sc:rand(.7,1.3),grow:1.3,vr:0});
   scheduleSave();
@@ -3017,7 +3136,7 @@ function mapTap(ev){
   if(ev.target.closest('[data-pin]')){ closeMap(); A.whoosh(); return; }
   const bEl=ev.target.closest('[data-mb]'), lEl=ev.target.closest('[data-ml]');
   if(bEl&&mBuild&&/^b\d+$/.test(bEl.dataset.mb)){ openBuild({bid:bEl.dataset.mb,map:true}); return; }
-  if(bEl){ const bid=bEl.dataset.mb; closeMap(); A.knock(); switchRoom(roomFor(bid)); return; }
+  if(bEl){ const bid=bEl.dataset.mb; closeMap(); A.knock(); switchRoom(roomFor(bid)); S.viaMap=true; return; }
   if(lEl&&mBuild){ openBuild({lot:+lEl.dataset.ml,map:true}); return; }
   const m=$('#mZoom').getScreenCTM(); if(!m) return;
   const pt=new DOMPoint(ev.clientX,ev.clientY).matrixTransform(m.inverse()), [a,b]=gInv(pt.x,pt.y);
@@ -3171,7 +3290,7 @@ function travel(e,id){
   const held=e.holding&&byId[e.holding], from=S.room;
   e.room=id; e.y=360; e.surf=null; e.fall=null;
   if(id==='town'){ const b=bldOfRoom(from); e.x=clamp((b?bldX(b):viewCX())+rand(-80,80),80,TW-80); }
-  else { const W=ROOMS[id].w||1440; e.x=clamp(W/2+rand(-120,120),80,W-80); }
+  else { const W=ROOMS[id].w||1440, cx=ROOMS[id].home?720:W/2; e.x=clamp(cx+rand(-120,120),80,W-80); }
   if(held) held.room=id;
   switchRoom(id,true); A.whoosh();
   if(!e.heldBy) startFall(e);
@@ -3219,6 +3338,7 @@ function tapHot(h,el){
     case 'clock': S.clockSpin=now; A.tick(); break;
     case 'dress': openDress(lastChar); break;
     case 'wiggle': A.boop(); break;
+    case 'liftbtn': liftGo(+el.dataset.f); break;
     case 'chest': {
       S.chestT=now; A.creak();
       const t=CHEST_TOYS[(Math.random()*CHEST_TOYS.length)|0];
@@ -3342,7 +3462,7 @@ function endPtr(ev,cancel){
     if(d.lifted){
       const t=cancel?null:targetAt(ev.clientX,ev.clientY);
       const stale=ev.timeStamp-d.lt>90;
-      if(t&&t.dataset.drop==='box'&&d.e.kind==='item'){ d.e.drag=false; removeEnt(d.e); updateDragging(); bump($('#bBox')); return; }
+      if(t&&t.dataset.drop==='box'&&d.e.kind==='item'){ d.e.drag=false; removeEnt(d.e); updateDragging(); bump(t); return; }
       if(t&&t.dataset.room&&t.dataset.room!==S.room){ updateDragging(); travel(d.e,t.dataset.room); return; }
       const bid=cancel?null:bldAt(p.x,d.e);
       if(bid&&ROOMS[roomFor(bid)]){ setHoverB(null); updateDragging(); A.knock(); travel(d.e,roomFor(bid)); return; }
@@ -3490,6 +3610,7 @@ function pour(e,now){
   for(const c of eatersHere()) if(!c.drag&&c.grinUntil<now&&dist({x:sx+20,y:sy+60},head(c))<80){ c.grinUntil=now+.8; A.giggle(); }
 }
 function ambient(now,dt){
+  if(S.lift) stepLift(dt);
   const n=S.nightAmt, room=S.room, rd=ROOMS[room], lampOn=!!S.lamps[room];
   if(Math.abs(n-S.lastNight)>.002){
     S.lastNight=n; const sky=lerpHex('#7CCBFF','#2B2765',n);
@@ -3666,9 +3787,13 @@ $('#furn').addEventListener('click',ev=>{ if(ev.target.id==='furn') $('#furn').h
 
 /* ================= Toolbar, splash, reset ================= */
 document.addEventListener('pointerdown',()=>A.init(),{capture:true});
-$('#rooms').addEventListener('click',ev=>{ const b=ev.target.closest('[data-room]'); if(b&&b.dataset.room!==S.room){ A.init(); switchRoom(b.dataset.room); } });
+$('#rooms').addEventListener('click',ev=>{
+  const b=ev.target.closest('[data-room]'); if(!b||b.dataset.room===S.room) return; A.init();
+  // a building entered from the map: Back goes back up to the map (looking at the town around that building)
+  if(b.id==='bBack'&&S.viaMap){ switchRoom('town',true); openMap(); return; }
+  switchRoom(b.dataset.room);
+});
 $('#bDress').addEventListener('click',()=>{ A.init(); openDress(lastChar); });
-$('#bBox').addEventListener('click',()=>{ A.init(); openBox(); });
 $('#bFurn').addEventListener('click',()=>{ A.init(); openFurn(); });
 $('#bBuild').addEventListener('click',()=>{ A.init(); if(S.room!=='town') return; A.bang(); setBuildMode(!S.buildMode); if(S.buildMode) A.bang(.14); });
 $('#buildGrid').addEventListener('click',ev=>{
@@ -3679,11 +3804,12 @@ $('#buildGrid').addEventListener('click',ev=>{
 });
 $('#bBuildDone').addEventListener('click',closeBuild);
 $('#build').addEventListener('click',ev=>{ if(ev.target.id==='build') closeBuild(); });
-$('#bPaint').addEventListener('click',()=>{
+// The toy box (openBox) and the paint roller (paintWalls) have no toolbar buttons for now: they will get a new place.
+function paintWalls(){
   A.init(); const r=ROOMS[S.room]; S.paint[S.room]=(S.paint[S.room]+1)%r.paints.length; applyPaint(); A.sparkle();
   for(let i=0;i<8;i++) spawn('star',camNow()+rand(60,1380),rand(60,700),{vx:rand(-40,40),vy:rand(-80,-30),life:1,sc:rand(.6,1)});
   scheduleSave();
-});
+}
 $('#bSound').addEventListener('click',ev=>{ A.init(); const b=ev.currentTarget; const m=!A.muted; A.setMuted(m); b.classList.toggle('muted',m); b.setAttribute('aria-pressed',String(!m)); b.setAttribute('aria-label',m?'Sound off':'Sound'); });
 $('#bMap').addEventListener('click',()=>{ A.init(); openMap(); });
 $('#mapSvg').addEventListener('click',mapTap);

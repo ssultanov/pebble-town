@@ -126,12 +126,12 @@ test('a new home is empty, scrolls, and gets furniture from the bed button', asy
   const b = await page.evaluate(() => window.__pt.addBld(2, 'home', 3));
   await expect(page.locator('#bFurn')).toBeHidden();
   await page.evaluate((id) => window.__pt.switchRoom(id), b.id);
-  // empty: nothing inside but the walls, and it is two screens wide, opening in the middle
-  expect(await page.locator('#ents > g').count()).toBe(0);
-  expect(await page.evaluate((id) => [window.__pt.ROOMS[id].w, window.__pt.S.camX], b.id)).toEqual([2880, 720]);
+  // empty: nothing inside but the walls; three rooms and the elevator side by side, opening at the front door
+  expect(await page.locator('#ents > g.ent').count()).toBe(0);
+  expect(await page.evaluate((id) => [window.__pt.ROOMS[id].w, window.__pt.S.camX], b.id)).toEqual([3 * 1300 + 520, 0]);
   // swiping the wall scrolls the room
-  await dragTo(page, await toScreen(page, 1440, 500), await toScreen(page, 1000, 500));
-  await expect.poll(() => page.evaluate(() => window.__pt.S.camX)).toBeGreaterThan(1000);
+  await dragTo(page, await toScreen(page, 1000, 560), await toScreen(page, 560, 560));
+  await expect.poll(() => page.evaluate(() => window.__pt.S.camX)).toBeGreaterThan(300);
   // the bed button adds furniture; a friend dropped on the bed lies down, and falls off when the bed is moved
   await expect(page.locator('#bFurn')).toBeVisible();
   await page.locator('#bFurn').click();
@@ -148,6 +148,39 @@ test('a new home is empty, scrolls, and gets furniture from the bed button', asy
   await page.waitForTimeout(600);
   await page.reload();
   expect(await page.evaluate(() => window.__pt.E.filter((e) => e.type === 'bed').length)).toBe(1);
+});
+
+test('a three-storey home has different rooms and an elevator that carries friends up', async ({ page }) => {
+  const b = await page.evaluate(() => window.__pt.addBld(2, 'home', 2)); // the townhouse: three storeys
+  await page.evaluate((id) => window.__pt.switchRoom(id), b.id);
+  // three rooms on the floor, each with its own wallpaper colour (and no hanging signs)
+  await expect(page.locator('#roomL pattern[id^="hp"]')).toHaveCount(3);
+  await expect(page.locator('#roomL [id^="hot-sign"]')).toHaveCount(0);
+  const walls = await page.evaluate(() => [0, 1, 2].map((i) => document.querySelector(`#roomL .wpA.h${i}`).getAttribute('fill')));
+  expect(new Set(walls).size).toBe(3);
+  // one button per floor
+  await expect(page.locator('#roomL [data-hot="liftbtn"]')).toHaveCount(3);
+  // put a friend in the cabin, then press the top floor
+  const E0 = await page.evaluate((id) => window.__pt.ROOMS[id].home.E0, b.id);
+  await page.evaluate(([id, E0]) => { const P = window.__pt, mo = P.byId.mo; mo.room = id; mo.x = E0 + 190; mo.y = 500; mo.surf = null; mo.fall = { vx: 0, vy: 0, floorY: 900 }; P.S.camX = E0 + 520 - 1440; P.switchRoom(id, true); P.S.camX = E0 + 520 - 1440; }, [b.id, E0]);
+  await expect.poll(() => page.evaluate(() => window.__pt.byId.mo.surf)).toBe('lift');
+  const btn = await page.evaluate(() => { const r = document.querySelector('#roomL [data-hot="liftbtn"][data-f="2"] > rect').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+  await page.mouse.click(btn.x, btn.y);
+  await expect.poll(() => page.evaluate(() => window.__pt.S.room)).toBe(b.id + 'f3');
+  expect(await page.evaluate(() => [window.__pt.byId.mo.room, window.__pt.byId.mo.surf])).toEqual([b.id + 'f3', 'lift']);
+  await expect(page.locator('#roomL pattern[id^="hp"]')).toHaveCount(3);
+  // the ride is saved
+  await page.waitForTimeout(600);
+  await page.reload();
+  expect(await page.evaluate(() => window.__pt.byId.mo.room)).toBe(b.id + 'f3');
+});
+
+test('a bungalow has four rooms on one floor and no elevator', async ({ page }) => {
+  const b = await page.evaluate(() => window.__pt.addBld(2, 'home', 5));
+  await page.evaluate((id) => window.__pt.switchRoom(id), b.id);
+  await expect(page.locator('#roomL pattern[id^="hp"]')).toHaveCount(4);
+  await expect(page.locator('#roomL [data-hot="liftbtn"]')).toHaveCount(0);
+  expect(await page.evaluate((id) => window.__pt.ROOMS[id].w, b.id)).toBe(4 * 1300);
 });
 
 test('furniture is drawn in the anime look and the floor lamp lights up', async ({ page }) => {
@@ -212,7 +245,10 @@ test('dragging a friend onto a room button takes them there', async ({ page }) =
 test('toy box drops a new item into the room', async ({ page }) => {
   await page.evaluate(() => window.__pt.switchRoom('kitchen'));
   const before = await page.evaluate(() => window.__pt.E.length);
-  await page.getByRole('button', { name: 'Toy box' }).click();
+  // the toy box and paint buttons are off the toolbar for now (they'll get a new place); the sheet still works
+  await expect(page.getByRole('button', { name: 'Toy box' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Paint the walls' })).toHaveCount(0);
+  await page.evaluate(() => { document.querySelector('#box').hidden = false; });
   await page.locator('[data-type="pizza"]').click();
   await expect(page.locator('#box')).toBeHidden();
   expect(await page.evaluate(() => window.__pt.E.length)).toBe(before + 1);
@@ -331,6 +367,12 @@ test('the town map shows every building and takes you where you tap', async ({ p
   await page.locator('#mapSvg [data-mb="library"]').click();
   await expect(page.locator('#map')).toBeHidden();
   await expect.poll(() => page.evaluate(() => window.__pt.S.room)).toBe('library1');
+  // Back from a building entered on the map goes back up to the map
+  await page.locator('#bBack').click();
+  await expect(page.locator('#map')).toBeVisible();
+  expect(await page.evaluate(() => window.__pt.S.room)).toBe('town');
+  await leaveMap(page);
+  await expect(page.locator('#map')).toBeHidden();
   // no "+" on the empty lots until the map's hammer is on
   await page.getByRole('button', { name: 'Town map' }).click();
   await page.waitForTimeout(400);
@@ -390,8 +432,11 @@ test('every house style is different, on the street, inside and on the map', asy
     await page.evaluate((id) => window.__pt.switchRoom(id), 'b' + i);
     await expect.poll(() => page.evaluate(() => window.__pt.S.room)).toBe('b' + i);
     expect(await page.locator('#roomL [data-hot="lamp"]').count()).toBe(1);
-    expect(await page.locator('#ents > g').count()).toBe(0);
+    expect(await page.locator('#ents > g.ent').count()).toBe(0);
   }
+  // as many storeys inside as the house has on the street (only the bungalow is single-storey)
+  expect(await page.evaluate((n) => [...Array(n)].map((_, i) => Object.keys(window.__pt.ROOMS).filter((k) => k === 'b' + (i + 1) || k.startsWith('b' + (i + 1) + 'f')).length), n))
+    .toEqual([2, 2, 3, 2, 2, 1, 2]);
   await page.evaluate(() => window.__pt.switchRoom('town'));
   // and each is drawn on the map, all different
   await page.getByRole('button', { name: 'Town map' }).click();
