@@ -60,8 +60,7 @@ button:focus-visible{outline:4px solid var(--coral);outline-offset:4px}
 #map{position:fixed;inset:0;z-index:15;background:#97C463;animation:mapIn .32s ease-out}
 #mapSvg{width:100%;height:100%;display:block;touch-action:none;overflow:visible}
 #mapSvg .hot{cursor:pointer}
-#bMapClose{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 16px);background:var(--coral)}
-#bMapBuild{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 30px + var(--btn))}
+#bMapBuild{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 16px)}
 #mapSvg .mpin{animation:pinBob .55s ease-in-out infinite alternate}
 @keyframes pinBob{from{transform:translateY(0)}to{transform:translateY(-12px)}}
 @keyframes mapIn{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:none}}
@@ -170,6 +169,9 @@ body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:
   <button class="tb" id="bBuild" type="button" aria-label="Build" aria-pressed="false">
     <svg viewBox="0 0 48 48"><path d="M11 40 L29 22" stroke="#2E2A4F" stroke-width="11" stroke-linecap="round"/><path d="M11 40 L29 22" stroke="#C98A52" stroke-width="5" stroke-linecap="round"/><path d="M19 15 L28 6 L42 20 L33 29 Z" fill="#C9C2DD" stroke="#2E2A4F" stroke-width="3.5" stroke-linejoin="round"/><path d="M28 6 L33 1 L38 6 L33 11" fill="#8E87AE" stroke="#2E2A4F" stroke-width="3" stroke-linejoin="round"/></svg>
   </button>
+  <button class="tb" id="bFurn" type="button" aria-label="Furniture" hidden>
+    <svg viewBox="0 0 48 48"><rect x="4" y="14" width="7" height="27" rx="3.5" fill="#B07CE8" stroke="#2E2A4F" stroke-width="3"/><rect x="9" y="24" width="34" height="11" rx="4" fill="#FFF8EE" stroke="#2E2A4F" stroke-width="3"/><rect x="21" y="22" width="22" height="14" rx="4" fill="#FF9EC4" stroke="#2E2A4F" stroke-width="3"/><rect x="11" y="18" width="11" height="8" rx="4" fill="#FFF8EE" stroke="#2E2A4F" stroke-width="3"/><path d="M12,36 V42 M41,36 V42" stroke="#2E2A4F" stroke-width="3.5" stroke-linecap="round"/></svg>
+  </button>
   <button class="tb" id="bDress" type="button" aria-label="Change looks">
     <svg viewBox="0 0 48 48"><ellipse cx="24" cy="35" rx="20" ry="7" fill="#FF7A5C" stroke="#2E2A4F" stroke-width="3.5"/><path d="M13 34 V15 Q13 9 19 9 H29 Q35 9 35 15 V34 Z" fill="#5A4FA0" stroke="#2E2A4F" stroke-width="3.5" stroke-linejoin="round"/><rect x="13" y="25" width="22" height="6" fill="#FFD15C" stroke="#2E2A4F" stroke-width="3"/><circle cx="31" cy="28" r="2.5" fill="#FF7A5C"/></svg>
   </button>
@@ -192,9 +194,6 @@ body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:
   <button class="tb" id="bMapBuild" type="button" aria-label="Build on the map" aria-pressed="false">
     <svg viewBox="0 0 48 48"><path d="M11 40 L29 22" stroke="#2E2A4F" stroke-width="11" stroke-linecap="round"/><path d="M11 40 L29 22" stroke="#C98A52" stroke-width="5" stroke-linecap="round"/><path d="M19 15 L28 6 L42 20 L33 29 Z" fill="#C9C2DD" stroke="#2E2A4F" stroke-width="3.5" stroke-linejoin="round"/><path d="M28 6 L33 1 L38 6 L33 11" fill="#8E87AE" stroke="#2E2A4F" stroke-width="3" stroke-linejoin="round"/></svg>
   </button>
-  <button class="tb" id="bMapClose" type="button" aria-label="Close map">
-    <svg viewBox="0 0 48 48"><path d="M13 13 L35 35 M35 13 L13 35" stroke="#2E2A4F" stroke-width="7" stroke-linecap="round"/></svg>
-  </button>
 </div>
 
 <div id="rotate" hidden>Turn sideways for a bigger room</div>
@@ -216,6 +215,15 @@ body.dragging .rt:not([aria-pressed="true"]),body.dragging-item #bBox{animation:
     <div class="box-foot">
       <p id="boxNote"><b>Tap a thing to drop it in.</b> Drag anything onto the toy box button to put it away.</p>
       <button class="done" id="bBoxDone" type="button"><svg viewBox="0 0 48 48"><path d="M10 25l9 9 19-20" fill="none" stroke="#2E2A4F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>Done</button>
+    </div>
+  </div>
+</div>
+
+<div id="furn" class="sheet" hidden role="dialog" aria-label="Furniture">
+  <div class="card box-card">
+    <div class="box-grid" id="furnGrid"></div>
+    <div class="build-foot">
+      <button class="done" id="bFurnDone" type="button"><svg viewBox="0 0 48 48"><path d="M10 25l9 9 19-20" fill="none" stroke="#2E2A4F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg>Done</button>
     </div>
   </div>
 </div>
@@ -351,16 +359,17 @@ const A={ctx:null,m:null,nb:null,muted:false,mus:null,step:0,
 const WALLS=[['#A6DCCB','#9DD5C3','#8CCBB7'],['#FFC9A8','#FFBE99','#F5AE86'],['#CFC2F2','#C4B5EE','#B3A2E4'],['#FFE7A0','#FFDF8A','#F2CF70'],['#B5DDF7','#A8D4F2','#93C6EA'],['#FFC6DA','#FFB8D0','#F5A3C0']];
 const FENCES=[['#FFF8EE','#E9DFCF','#fff'],['#FF9EC4','#F087B0','#fff'],['#4CB8D8','#3A9BC0','#fff'],['#FFD15C','#F2B93B','#fff'],['#B07CE8','#9A66D4','#fff'],['#FF7A5C','#E8664F','#fff']];
 
-function woodFloor(c,l){
-  let b=''; [820,856,898,946].forEach((y,i)=>{ b+=`<path d="M0,${y} H1440" stroke="${l}" stroke-width="3"/>`; for(let x=(i%2?90:200);x<1440;x+=290) b+=`<path d="M${x},${y} V${[790,820,856,898][i]}" stroke="${l}" stroke-width="3"/>`; });
-  return `<rect y="790" width="1440" height="210" fill="${c}"/>${b}`;
+// W: room width (built homes are wider than the screen).
+function woodFloor(c,l,W=1440){
+  let b=''; [820,856,898,946].forEach((y,i)=>{ b+=`<path d="M0,${y} H${W}" stroke="${l}" stroke-width="3"/>`; for(let x=(i%2?90:200);x<W;x+=290) b+=`<path d="M${x},${y} V${[790,820,856,898][i]}" stroke="${l}" stroke-width="3"/>`; });
+  return `<rect y="790" width="${W}" height="210" fill="${c}"/>${b}`;
 }
-function wallFloor(pat,size,floor,fdefs=''){
+function wallFloor(pat,size,floor,fdefs='',W=1440){
   return `<defs><pattern id="wallp" width="${size}" height="${size}" patternUnits="userSpaceOnUse">${pat}</pattern>${fdefs}</defs>
-<rect width="1440" height="790" fill="url(#wallp)"/>
-<rect class="wpTop" width="1440" height="26"/><path d="M0,26 H1440" ${SW} stroke-width="4"/>
+<rect width="${W}" height="790" fill="url(#wallp)"/>
+<rect class="wpTop" width="${W}" height="26"/><path d="M0,26 H${W}" ${SW} stroke-width="4"/>
 ${floor}
-<rect y="766" width="1440" height="26" fill="#FFF8EE"/><path d="M0,766 H1440 M0,792 H1440" ${SW} stroke-width="4"/>`;
+<rect y="766" width="${W}" height="26" fill="#FFF8EE"/><path d="M0,766 H${W} M0,792 H${W}" ${SW} stroke-width="4"/>`;
 }
 function win(x,y,s,c1,c2){
   return `<g data-hot="window" class="hot" transform="translate(${x} ${y}) scale(${s})">
@@ -1289,41 +1298,29 @@ function tvScene(ch){
   if(ch===4) return `<rect x="${bx}" y="${by}" width="290" height="184" fill="#FFE7A0"/><circle cx="${bx+145}" cy="${by+92}" r="62" fill="#FFD15C" ${SW} stroke-width="5"/><circle cx="${bx+124}" cy="${by+80}" r="7" fill="${K}"/><circle cx="${bx+166}" cy="${by+80}" r="7" fill="${K}"/><path d="M${bx+118},${by+108} Q${bx+145},${by+134} ${bx+172},${by+108}" ${SW} stroke-width="5" fill="none" stroke-linecap="round"/>`;
   return `<rect x="${bx}" y="${by}" width="290" height="184" fill="#7CCBFF"/><circle cx="${bx+230}" cy="${by+50}" r="26" fill="#FFD15C" ${SW} stroke-width="4"/><path d="M${bx},${by+150} Q${bx+90},${by+100} ${bx+170},${by+140} T${bx+290},${by+130} V${by+184} H${bx} Z" fill="#7ED957" ${SW} stroke-width="4"/>`;
 }
+// A built home starts empty (walls, door, window, ceiling lamp): kids fill it from the furniture button. It is two screens wide and scrolls.
+const HOME_W=2880;
 function homeArt(b){
-  const P=HOMES[b.c%HOMES.length];
+  const P=HOMES[b.c%HOMES.length], W=HOME_W;
   const pat=`<rect class="wpA" width="72" height="72"/><rect class="wpB" width="36" height="72"/><path d="${heart(54,22,7)}" fill="#FFF8EE" opacity=".55"/><circle cx="18" cy="54" r="4" fill="#FFF8EE" opacity=".55"/>`;
-  return wallFloor(pat,72,woodFloor('#C98A52','#B0733F'))+`
-<defs><clipPath id="tvClip"><rect x="130" y="318" width="290" height="184" rx="12"/></clipPath><clipPath id="picClip"><rect x="1308" y="168" width="94" height="104" rx="4"/></clipPath></defs>
-<ellipse cx="720" cy="905" rx="320" ry="60" fill="${P.w}" ${SW} stroke-width="5"/>
-<ellipse cx="720" cy="905" rx="270" ry="44" fill="none" stroke="#FFF8EE" stroke-width="7" stroke-dasharray="1 16" stroke-linecap="round"/>
-<rect x="90" y="640" width="370" height="152" rx="12" fill="#A8744A" ${SW} stroke-width="5"/>
-<rect x="110" y="662" width="155" height="108" rx="8" fill="#C98A52" ${SW} stroke-width="4"/><rect x="285" y="662" width="155" height="108" rx="8" fill="#C98A52" ${SW} stroke-width="4"/>
-<circle cx="245" cy="716" r="7" fill="#FFD15C" ${SW} stroke-width="3"/><circle cx="305" cy="716" r="7" fill="#FFD15C" ${SW} stroke-width="3"/>
-<g data-hot="tv" class="hot" id="hot-tv" data-piv="275 520">
-  <rect x="112" y="300" width="326" height="220" rx="22" fill="${K}"/>
-  <g clip-path="url(#tvClip)"><g id="tvScreen"></g></g>
-  <rect x="130" y="318" width="290" height="184" rx="12" fill="none" stroke="#3B3566" stroke-width="4"/>
-  <circle cx="404" cy="511" r="5" fill="#7ED957"/>
+  return wallFloor(pat,72,woodFloor('#C98A52','#B0733F',W),'',W)+`
+<rect x="70" y="330" width="220" height="462" rx="16" fill="#FFF8EE" ${SW} stroke-width="5"/>
+<rect x="92" y="352" width="176" height="440" rx="10" fill="${P.d}" ${SW} stroke-width="5"/>
+<rect x="116" y="380" width="128" height="150" rx="10" fill="none" ${SW} stroke-width="3" opacity=".35"/><rect x="116" y="560" width="128" height="200" rx="10" fill="none" ${SW} stroke-width="3" opacity=".35"/>
+<path d="${heart(180,455,24)}" fill="#FFF8EE" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<circle cx="244" cy="590" r="11" fill="#FFD15C" ${SW} stroke-width="4"/>
+<rect x="96" y="808" width="168" height="26" rx="10" fill="${P.r}" ${SW} stroke-width="4"/>
+${win(560,100,1,P.r,P.d)}
+${hangLamp(1440,P.r)}
+<g data-hot="wiggle" class="hot" id="hot-picture" data-piv="2160 138">
+  <path d="M2160,138 L2117,160 M2160,138 L2203,160" ${SW} stroke-width="3"/><circle cx="2160" cy="136" r="5" fill="${K}"/>
+  <rect x="2103" y="158" width="114" height="124" rx="8" fill="${P.r}" ${SW} stroke-width="5"/>
+  <rect x="2113" y="168" width="94" height="104" rx="4" fill="#FFF8EE" ${SW} stroke-width="3"/>
+  <path d="${heart(2160,224,24)}" fill="#FF7A5C" ${SW} stroke-width="4"/>
 </g>
-${win(530,100,1,P.r,P.d)}
-<g data-hot="lamp" class="hot">
-  <rect x="840" y="290" width="140" height="510" fill="transparent"/>
-  <ellipse cx="910" cy="794" rx="50" ry="12" fill="${K}"/>
-  <rect x="905" y="380" width="10" height="414" rx="5" fill="${K}"/>
-  <circle id="bulb" cx="910" cy="394" r="16" fill="#F3E9D2" ${SW} stroke-width="3"/>
-  <path id="shade" data-off="#FF9EC4" d="M846,392 L872,296 L948,296 L974,392 Z" fill="#FF9EC4" ${SW} stroke-width="5" stroke-linejoin="round"/>
-  <path d="M866,330 H954 M858,362 H962" stroke="#FFF8EE" stroke-width="6" opacity=".7"/>
-</g>
-<path d="M1016,374 L1046,374 L1016,402 Z M1246,374 L1216,374 L1246,402 Z" fill="#8B5E3C" ${SW} stroke-width="4" stroke-linejoin="round"/>
-<rect x="1000" y="360" width="262" height="16" rx="5" fill="#8B5E3C" ${SW} stroke-width="4"/>
-<g data-hot="wiggle" class="hot" id="hot-picture" data-piv="1355 138">
-  <path d="M1355,138 L1312,160 M1355,138 L1398,160" ${SW} stroke-width="3"/><circle cx="1355" cy="136" r="5" fill="${K}"/>
-  <rect x="1298" y="158" width="114" height="124" rx="8" fill="${P.r}" ${SW} stroke-width="5"/>
-  <rect x="1308" y="168" width="94" height="104" rx="4" fill="#FFF8EE"/>
-  <g clip-path="url(#picClip)"><path d="${heart(1355,222,26)}" fill="#FF7A5C" ${SW} stroke-width="4"/></g>
-  <rect x="1308" y="168" width="94" height="104" rx="4" fill="none" ${SW} stroke-width="3"/>
-</g>
-${sofa(...(P.so||['#FF7A5C','#FF9A80','#E8664F']))}`;
+<g data-hot="wiggle" class="hot" id="hot-star" data-piv="2560 300">
+  <path d="${star5(2560,300,56,26)}" fill="#FFD15C" ${SW} stroke-width="5" stroke-linejoin="round"/>
+</g>`;
 }
 function buy(t,x,y,i){ return `<g data-hot="buy" data-type="${t}" class="hot" id="buy${i}" data-piv="${x} ${y}"><rect x="${x-44}" y="${y-90}" width="88" height="94" fill="transparent"/><g transform="translate(${x} ${y}) scale(.72)">${ITEMS[t].art}</g></g>`; }
 function shopArt(b,kind){
@@ -1363,12 +1360,11 @@ ${[0,1,2,3,4].map(i=>`<rect x="${780+i*76}" y="630" width="40" height="142" rx="
 </g>
 ${goods}`;
 }
-const HOME_SURF=[{id:'sill',x1:520,x2:820,y:376},{id:'shelf',x1:1000,x2:1262,y:360},{id:'cab',x1:96,x2:454,y:640,chars:true},
-  {id:'armL',x1:988,x2:1042,y:612},{id:'armR',x1:1258,x2:1312,y:612},{id:'seat',x1:1048,x2:1252,y:700,chars:true,seat:true}];
+const HOME_SURF=[{id:'sill',x1:545,x2:855,y:376}];
 const SHOP_SURF=[{id:'sill',x1:462,x2:702,y:331},{id:'counter',x1:760,x2:1016,y:598,chars:true}];
-const BROOM={home:{art:homeArt,lamp:[910,430],glow:[910,400],surf:HOME_SURF},shop:{art:shopArt,lamp:[960,300],glow:[960,320],surf:SHOP_SURF}};
+const BROOM={home:{art:homeArt,lamp:[1440,300],glow:[1440,320],surf:HOME_SURF,w:HOME_W},shop:{art:shopArt,lamp:[960,300],glow:[960,320],surf:SHOP_SURF}};
 function regBld(b){
-  const T=BROOM[b.type], r={art:()=>T.art(b),paints:WALLS,defPaint:(b.c*2+(b.type==='shop'?1:0))%WALLS.length,lamp:T.lamp,glow:T.glow,surf:T.surf,props:[],bld:b,map:{}};
+  const T=BROOM[b.type], r={art:()=>T.art(b),paints:WALLS,defPaint:(b.c*2+(b.type==='shop'?1:0))%WALLS.length,lamp:T.lamp,glow:T.glow,surf:T.surf,props:[],bld:b,map:{},w:T.w};
   for(const s of r.surf) r.map[s.id]=s;
   ROOMS[b.id]=r;
   const p=S.paint[b.id]; if(!(Number.isInteger(p)&&p>=0&&p<WALLS.length)) S.paint[b.id]=r.defPaint;
@@ -1749,6 +1745,93 @@ const ITEMS={
   plant:{h:150,w:70,snd:'rustle',art:`<path d="M0,-56 Q-44,-82 -40,-124 Q-8,-104 0,-56 Z" fill="#5BBF6A" stroke="${K}" stroke-width="4" stroke-linejoin="round"/><path d="M0,-56 Q42,-90 34,-136 Q2,-108 0,-56 Z" fill="#4CAF5E" stroke="${K}" stroke-width="4" stroke-linejoin="round"/><path d="M0,-56 Q-12,-108 2,-150 Q18,-106 0,-56 Z" fill="#6DCB78" stroke="${K}" stroke-width="4" stroke-linejoin="round"/><path d="M0,-58 L-26,-106 M0,-58 L22,-114 M0,-58 L2,-132" stroke="${K}" stroke-width="2.5" opacity=".4"/><path d="M-28,-52 L28,-52 L22,0 L-22,0 Z" fill="#FF7A5C" stroke="${K}" stroke-width="4.5" stroke-linejoin="round"/><rect x="-33" y="-62" width="66" height="14" rx="5" fill="#E8664F" stroke="${K}" stroke-width="4"/><circle cx="-10" cy="-28" r="4" fill="#FFF8EE"/><circle cx="8" cy="-20" r="4" fill="#FFF8EE"/>`},
   can:{h:82,w:120,snd:'pour',art:`<path d="M22,-26 L58,-62" stroke="${K}" stroke-width="15" stroke-linecap="round"/><path d="M22,-26 L58,-62" stroke="#4CB8D8" stroke-width="8" stroke-linecap="round"/><path d="M50,-72 L70,-52 L78,-64 L62,-80 Z" fill="#3A9BC0" stroke="${K}" stroke-width="4" stroke-linejoin="round"/><path d="M-30,-58 Q-56,-58 -56,-34 Q-56,-12 -30,-14" stroke="${K}" stroke-width="13" fill="none" stroke-linecap="round"/><path d="M-30,-58 Q-56,-58 -56,-34 Q-56,-12 -30,-14" stroke="#3A9BC0" stroke-width="6" fill="none" stroke-linecap="round"/><rect x="-32" y="-62" width="62" height="62" rx="12" fill="#4CB8D8" stroke="${K}" stroke-width="4.5"/><path d="M-18,-48 v26" stroke="#fff" stroke-width="5" opacity=".5" stroke-linecap="round"/><path d="${heart(8,-30,9)}" fill="#FFD15C" stroke="${K}" stroke-width="2.5"/>`}
 };
+// Furniture: big items from the furniture button (inside built homes). `furn` lists the surfaces that move with the piece,
+// relative to its feet: friends sit, lie or stand on them and things can be set on them. Furniture only stands on the floor.
+Object.assign(ITEMS,{
+  bed:{h:322,w:518,snd:'boop',furn:[{x1:-215,x2:207,y:-162,chars:true,lie:true,snap:[35,115]}],art:`<g transform="translate(-1055 -792)">
+<rect x="840" y="756" width="22" height="36" fill="${K}"/><rect x="1262" y="756" width="22" height="36" fill="${K}"/>
+<rect x="826" y="686" width="470" height="78" rx="12" fill="#F2B93B" ${SW} stroke-width="5"/>
+<rect x="796" y="470" width="58" height="322" rx="26" fill="#FFD15C" ${SW} stroke-width="5"/>
+<path d="${star5(825,530,16,7)}" fill="#FFF8EE" ${SW} stroke-width="3.5" stroke-linejoin="round"/>
+<rect x="840" y="636" width="444" height="64" rx="20" fill="#FFF8EE" ${SW} stroke-width="5"/>
+<rect x="858" y="600" width="112" height="46" rx="23" fill="#FFF8EE" ${SW} stroke-width="4.5"/>
+<path d="M880,612 Q914,622 948,612" ${SW} stroke-width="3" opacity=".3" fill="none"/>
+<rect x="990" y="626" width="296" height="108" rx="22" fill="#4CB8D8" ${SW} stroke-width="5"/>
+<g fill="#FFF8EE" opacity=".85"><circle cx="1036" cy="686" r="6"/><circle cx="1096" cy="706" r="6"/><circle cx="1156" cy="680" r="6"/><circle cx="1216" cy="704" r="6"/><circle cx="1256" cy="676" r="5"/></g>
+<rect x="990" y="626" width="296" height="26" rx="13" fill="#FFF8EE" ${SW} stroke-width="4"/>
+<rect x="1268" y="586" width="46" height="206" rx="20" fill="#FFD15C" ${SW} stroke-width="5"/></g>`},
+  sofa:{h:252,w:332,snd:'boop',furn:[{x1:-102,x2:102,y:-98,chars:true,seat:true},{x1:-162,x2:-108,y:-186},{x1:108,x2:162,y:-186}],
+    art:`<g transform="translate(-1150 -798)">${sofa('#B07CE8','#CFB0F2','#9A66D4')}</g>`},
+  armchair:{h:196,w:232,snd:'boop',furn:[{x1:-50,x2:50,y:-90,chars:true,seat:true,snap:[0,0]}],art:`<rect x="-74" y="-12" width="14" height="12" fill="${K}"/><rect x="60" y="-12" width="14" height="12" fill="${K}"/>
+<rect x="-88" y="-196" width="176" height="150" rx="40" fill="#FF7A5C" ${SW} stroke-width="5"/>
+<rect x="-62" y="-176" width="124" height="100" rx="28" fill="#FF9A80" ${SW} stroke-width="4"/>
+<rect x="-84" y="-52" width="168" height="40" rx="14" fill="#E8664F" ${SW} stroke-width="4"/>
+<rect x="-70" y="-100" width="140" height="58" rx="22" fill="#FF9A80" ${SW} stroke-width="5"/>
+<rect x="-116" y="-140" width="52" height="128" rx="24" fill="#FF7A5C" ${SW} stroke-width="5"/>
+<rect x="64" y="-140" width="52" height="128" rx="24" fill="#FF7A5C" ${SW} stroke-width="5"/>`},
+  table:{h:156,w:320,snd:'clack',furn:[{x1:-160,x2:160,y:-156,chars:true}],art:`<rect x="-130" y="-128" width="22" height="128" rx="6" fill="#A8744A" ${SW} stroke-width="4"/>
+<rect x="108" y="-128" width="22" height="128" rx="6" fill="#A8744A" ${SW} stroke-width="4"/>
+<rect x="-120" y="-130" width="240" height="24" fill="#B0733F" ${SW} stroke-width="4"/>
+<rect x="-160" y="-156" width="320" height="30" rx="12" fill="#C98A52" ${SW} stroke-width="5"/>
+<path d="M-140,-145 H60" stroke="#FFF8EE" stroke-width="5" opacity=".4" stroke-linecap="round"/>`},
+  chair:{h:232,w:120,snd:'clack',furn:[{x1:-40,x2:40,y:-100,chars:true,seat:true,snap:[5,5]}],art:`<rect x="34" y="-92" width="18" height="92" rx="7" fill="#7ED957" ${SW} stroke-width="4"/>
+<rect x="-50" y="-232" width="24" height="232" rx="10" fill="#7ED957" ${SW} stroke-width="5"/>
+<rect x="-58" y="-112" width="118" height="26" rx="11" fill="#5BBF6A" ${SW} stroke-width="5"/>
+<circle cx="-38" cy="-206" r="5" fill="#FFF8EE"/>`},
+  wardrobe:{h:556,w:254,snd:'creak',furn:[{x1:-103,x2:103,y:-556,chars:true}],art:`<g transform="translate(-155 -792)">
+<rect x="52" y="770" width="20" height="22" fill="${K}"/><rect x="238" y="770" width="20" height="22" fill="${K}"/>
+<rect x="40" y="250" width="230" height="526" rx="18" fill="#FF9EC4" ${SW} stroke-width="5"/>
+<rect x="58" y="272" width="84" height="480" rx="12" fill="none" ${SW} stroke-width="3" opacity=".35"/>
+<rect x="168" y="272" width="84" height="480" rx="12" fill="none" ${SW} stroke-width="3" opacity=".35"/>
+<path d="M155,262 V764" ${SW} stroke-width="4"/>
+<circle cx="140" cy="520" r="9" fill="#FFD15C" ${SW} stroke-width="3"/><circle cx="170" cy="520" r="9" fill="#FFD15C" ${SW} stroke-width="3"/>
+<path d="${heart(100,380,22)}" fill="#FFF8EE" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<path d="${star5(210,380,24,11)}" fill="#FFD15C" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<rect x="28" y="236" width="254" height="24" rx="8" fill="#F087B0" ${SW} stroke-width="5"/></g>`},
+  bookcase:{h:330,w:220,snd:'flip',furn:[{x1:-110,x2:110,y:-330,chars:true},{x1:-90,x2:90,y:-216},{x1:-90,x2:90,y:-112}],art:`<rect x="-110" y="-330" width="220" height="330" rx="12" fill="#A8744A" ${SW} stroke-width="5"/>
+<rect x="-92" y="-312" width="184" height="296" rx="6" fill="#8B5E3C"/>
+<rect x="-90" y="-310" width="20" height="94" rx="3" fill="#FF7A5C" ${SW} stroke-width="3"/><rect x="-70" y="-296" width="20" height="80" rx="3" fill="#4CB8D8" ${SW} stroke-width="3"/><rect x="-50" y="-302" width="18" height="86" rx="3" fill="#FFD15C" ${SW} stroke-width="3"/><path d="M-30,-216 L-12,-296 L4,-292 L-14,-216 Z" fill="#7ED957" ${SW} stroke-width="3" stroke-linejoin="round"/>
+<rect x="30" y="-200" width="20" height="88" rx="3" fill="#B07CE8" ${SW} stroke-width="3"/><rect x="50" y="-190" width="20" height="78" rx="3" fill="#FF9EC4" ${SW} stroke-width="3"/><rect x="70" y="-204" width="18" height="92" rx="3" fill="#FF7A5C" ${SW} stroke-width="3"/>
+<rect x="-104" y="-222" width="208" height="12" rx="4" fill="#C98A52" ${SW} stroke-width="3.5"/>
+<rect x="-104" y="-118" width="208" height="12" rx="4" fill="#C98A52" ${SW} stroke-width="3.5"/>`},
+  floorlamp:{h:392,w:120,snd:'click',furn:[],art:`<ellipse cx="0" cy="-6" rx="46" ry="12" fill="${K}"/>
+<rect x="-5" y="-300" width="10" height="294" rx="5" fill="${K}"/>
+<circle class="fbulb" cx="0" cy="-296" r="14" fill="#F3E9D2" ${SW} stroke-width="3"/>
+<path class="fshade" d="M-58,-300 L-34,-392 L34,-392 L58,-300 Z" fill="#4CB8D8" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<path d="M-44,-336 H44" stroke="#FFF8EE" stroke-width="6" opacity=".7"/>`},
+  bigplant:{h:320,w:240,snd:'rustle',furn:[],art:`<path d="M0,-96 Q-110,-96 -120,-176 Q-50,-166 0,-96 Z" fill="#4CAF5E" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<path d="M0,-96 Q100,-102 118,-176 Q50,-164 0,-96 Z" fill="#5BBF6A" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<path d="M0,-96 Q-90,-146 -96,-256 Q-20,-216 0,-96 Z" fill="#5BBF6A" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<path d="M0,-96 Q86,-156 84,-274 Q14,-226 0,-96 Z" fill="#4CAF5E" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<path d="M0,-96 Q-30,-206 6,-320 Q40,-206 0,-96 Z" fill="#6DCB78" ${SW} stroke-width="4" stroke-linejoin="round"/>
+<path d="M0,-98 L-70,-221 M0,-98 L64,-238 M0,-98 L4,-296 M0,-98 L-96,-156 M0,-98 L96,-158" ${SW} stroke-width="2.5" opacity=".35"/>
+<path d="M-56,-96 L56,-96 L44,0 L-44,0 Z" fill="#FFD15C" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<rect x="-64" y="-112" width="128" height="22" rx="8" fill="#F2B93B" ${SW} stroke-width="4.5"/>
+<circle cx="-16" cy="-56" r="6" fill="#FFF8EE"/><circle cx="14" cy="-38" r="6" fill="#FFF8EE"/>`},
+  rug:{h:70,w:460,snd:'boop',furn:[],art:`<ellipse cx="0" cy="-30" rx="230" ry="34" fill="#B07CE8" ${SW} stroke-width="5"/>
+<ellipse cx="0" cy="-30" rx="188" ry="21" fill="none" stroke="#FFF8EE" stroke-width="7" stroke-dasharray="1 16" stroke-linecap="round"/>`},
+  tv:{h:320,w:330,snd:'click',furn:[{x1:-150,x2:150,y:-320}],art:`<g transform="translate(-275 -620)">
+<rect x="140" y="604" width="16" height="16" fill="${K}"/><rect x="394" y="604" width="16" height="16" fill="${K}"/>
+<rect x="120" y="540" width="310" height="70" rx="12" fill="#A8744A" ${SW} stroke-width="5"/>
+<rect x="255" y="518" width="40" height="24" fill="${K}"/>
+<rect x="112" y="300" width="326" height="220" rx="22" fill="${K}"/>
+<g class="tvs">${tvScene(0)}</g>
+<rect x="128" y="316" width="294" height="188" rx="12" fill="none" stroke="${K}" stroke-width="6"/>
+<circle cx="404" cy="511" r="5" fill="#7ED957"/></g>`},
+  stove:{h:214,w:208,snd:'gurgle',furn:[{x1:-100,x2:100,y:-214,chars:true}],art:`<rect x="-96" y="-200" width="192" height="200" rx="14" fill="#FFF8EE" ${SW} stroke-width="5"/>
+<rect x="-74" y="-130" width="148" height="100" rx="10" fill="#5A4FA0" ${SW} stroke-width="4"/>
+<path d="M-56,-110 h30" stroke="#FFF8EE" stroke-width="5" opacity=".5" stroke-linecap="round"/>
+<rect x="-70" y="-152" width="140" height="10" rx="5" fill="${K}"/>
+<g fill="#FF7A5C" ${SW} stroke-width="3"><circle cx="-60" cy="-176" r="8"/><circle cx="-30" cy="-176" r="8"/><circle cx="30" cy="-176" r="8"/><circle cx="60" cy="-176" r="8"/></g>
+<rect x="-104" y="-214" width="208" height="20" rx="8" fill="#C9C2DD" ${SW} stroke-width="4.5"/>`},
+  tub:{h:200,w:400,snd:'splash',furn:[{x1:-170,x2:170,y:-150,chars:true,seat:true,snap:[-90,90]}],art:`<circle cx="-130" cy="-14" r="14" fill="#FFD15C" ${SW} stroke-width="4"/><circle cx="130" cy="-14" r="14" fill="#FFD15C" ${SW} stroke-width="4"/>
+<path d="M-176,-160 V-196 H-138" fill="none" ${SW} stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/><path d="M-176,-160 V-196 H-138" fill="none" stroke="#C9C2DD" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M-180,-150 H180 V-96 Q180,-24 110,-24 H-110 Q-180,-24 -180,-96 Z" fill="#FFF8EE" ${SW} stroke-width="5" stroke-linejoin="round"/>
+<path d="M-150,-120 Q-150,-60 -100,-56" stroke="#4CB8D8" stroke-width="7" fill="none" stroke-linecap="round" opacity=".6"/>
+<rect x="-196" y="-166" width="392" height="24" rx="12" fill="#4CB8D8" ${SW} stroke-width="5"/>
+<g fill="#fff" fill-opacity=".7" ${SW} stroke-width="3"><circle cx="-60" cy="-184" r="14"/><circle cx="-34" cy="-192" r="10"/><circle cx="40" cy="-182" r="12"/><circle cx="70" cy="-196" r="8"/></g>`}
+});
+const FURN_ORDER=['bed','sofa','armchair','table','chair','wardrobe','bookcase','floorlamp','bigplant','rug','tv','stove','tub'];
 const BOX_ORDER=['apple','banana','pizza','cupcake','carrot','milk','juice','bone','ball','teddy','duck','blocks','car','dino','book','soap','brush','plant','can'];
 const CHEST_TOYS=['ball','teddy','duck','blocks','car','dino','book'];
 function itemArt(type){
@@ -1821,7 +1904,7 @@ svg.innerHTML=`<defs>
 const roomL=$('#roomL'), entsL=$('#ents'), partsL=$('#parts');
 const G={nightRect:$('#nightRect'),lampHole:$('#lampHole'),lampGlow:$('#lampGlow'),holes:$('#holes'),cam:$('#cam'),cam2:$('#cam2')};
 let R={};
-const S={now:0,room:'town',camX:0,camV:0,camTo:null,floor:{},red:CROSSX.map(()=>false),redT:CROSSX.map(()=>0),follow:null,board:0,easel:0,puppetT:-9,blds:[],bldN:0,buildMode:false,grow:{},homeRoom:'kitchen',tvCh:0,enterT:0,hoverB:null,night:false,nightAmt:0,lamps:{},fridgeOpen:false,music:false,potUntil:0,nextSteam:0,nextNote:0,clockSpin:-9,wig:{},
+const S={now:0,room:'town',camX:0,camV:0,camTo:null,floor:{},red:CROSSX.map(()=>false),redT:CROSSX.map(()=>0),follow:null,board:0,easel:0,puppetT:-9,blds:[],bldN:0,buildMode:false,grow:{},homeRoom:'kitchen',enterT:0,hoverB:null,night:false,nightAmt:0,lamps:{},fridgeOpen:false,music:false,potUntil:0,nextSteam:0,nextNote:0,clockSpin:-9,wig:{},
   dressSeen:false,nextHint:3,lastNight:-1,bath:0,bathRun:0,nextWater:0,nextBubble:0,sinkUntil:0,chestT:-9,mobileT:-9,mobPh:0,
   swingAmp:0,swingAng:0,bflyFast:0,bflyPh:0,nextFly:0,nextSmoke:0,flowers:DEF_FLOWERS.slice(),flW:[0,0,0,0,0],paint:{},removed:new Set(),spawnN:0,props:[]};
 const E=[]; let byId={}; let lastChar=null;
@@ -1835,9 +1918,23 @@ function makeEl(e){
   if(e.kind==='item') g.innerHTML=itemArt(e.type);
 }
 function sanitizeLook(l,def){ const o={}; for(const k in OPTS) o[k]=OPTS[k].includes(l&&l[k])?l[k]:def[k]; return o; }
-const surfDef=e=>{ const r=ROOMS[e.room]; return r&&e.surf?r.map[e.surf]:null; };
+const isFurn=e=>e.kind==='item'&&!!ITEMS[e.type].furn;
+// A piece of furniture standing on the floor offers its surfaces, with ids "F<n>:<its id>".
+function furnSurfs(f){
+  if(f.surf!=='floor'||f.drag||f.fall||f.heldBy) return [];
+  return ITEMS[f.type].furn.map((s,i)=>({...s,id:`F${i}:${f.id}`,x1:f.x+s.x1,x2:f.x+s.x2,y:f.y+s.y,snap:s.snap&&[f.x+s.snap[0],f.x+s.snap[1]]}));
+}
+function surfsOf(room){ let L=ROOMS[room].surf; for(const f of E) if(f.room===room&&isFurn(f)) L=L.concat(furnSurfs(f)); return L; }
+const surfDef=e=>{
+  const r=ROOMS[e.room]; if(!r||!e.surf) return null;
+  if(e.surf[0]!=='F') return r.map[e.surf];
+  const m=/^F(\d+):(.+)$/.exec(e.surf), f=m&&byId[m[2]];
+  return f&&f!==e&&f.room===e.room?furnSurfs(f)[+m[1]]||null:null;
+};
+// Things resting on a piece of furniture fall off when it is picked up or put away.
+function dropRiders(f){ const tail=':'+f.id; for(const o of E) if(o.room===f.room&&o.surf&&o.surf[0]==='F'&&o.surf.endsWith(tail)&&!o.drag) startFall(o); }
 const wOf=e=>(ROOMS[e.room]&&ROOMS[e.room].w)||1440;
-const clampCam=x=>clamp(x,0,TW-1440);
+const clampCam=x=>clamp(x,0,(ROOMS[S.room].w||1440)-1440);
 const camNow=()=>ROOMS[S.room].w?S.camX:0;
 const viewCX=()=>camNow()+720;
 const bldOfRoom=room=>HONEY.includes(room)?'honey':!ROOMS[room]?null:ROOMS[room].lm||(ROOMS[room].bld?room:null);
@@ -1930,10 +2027,9 @@ function buildRoom(){
   roomL.innerHTML=r.art();
   entsL.innerHTML=''; S.props=[];
   for(const p of r.props){ const g=document.createElementNS(NS,'g'); g.setAttribute('pointer-events','none'); g.innerHTML=p.art(); S.props.push({y:p.y,el:g}); }
-  R={}; ['sky','moonCut','dayBits','nightBits','shade','bulb','fridgeIn','fridgeDoor','hourH','minH','chestLid','swingG','bfly','bwings','mobileG','sinkWater','tubWater','clouds','para','birds','blds','tvScreen','boardArt','easelArt','puppet','pcurL','pcurR']
+  R={}; ['sky','moonCut','dayBits','nightBits','shade','bulb','fridgeIn','fridgeDoor','hourH','minH','chestLid','swingG','bfly','bwings','mobileG','sinkWater','tubWater','clouds','para','birds','blds','boardArt','easelArt','puppet','pcurL','pcurR']
     .forEach(id=>{ R[id]=roomL.querySelector('#'+id); });
   G.holes.innerHTML=''; drawTown();
-  if(R.tvScreen) R.tvScreen.innerHTML=tvScene(S.tvCh);
   if(R.boardArt) R.boardArt.innerHTML=boardPic(S.board);
   if(R.easelArt) R.easelArt.innerHTML=easelPic(S.easel);
   if(S.room==='town') for(const c of CARS){ c.prop={y:LANEY[c.lane],el:c.el}; S.props.push(c.prop); }
@@ -1945,7 +2041,7 @@ function buildRoom(){
   S.lastNight=-1; S.wig={};
   for(const p of P) p.g.remove(); P.length=0;
   for(const e of here()){
-    e.hid=null; e.cls=null; e.key='';
+    e.hid=null; e.cls=null; e.key=''; e.x=clamp(e.x,30,wOf(e)-30);
     if(e.heldBy||e.drag) continue;
     if(e.surf!=='floor'&&!surfDef(e)) startFall(e);
     else if(e.surf==='floor'&&e.y<FT+8) startFall(e);
@@ -1959,22 +2055,24 @@ function switchRoom(id,quiet){
   ptrs.clear(); updateDragging();
   for(const e of E) e.wantFood=false;
   const from=S.room;
-  if(ROOMS[id].w){ const b=bldOfRoom(from); if(b) S.camX=clampCam(bldX(b)-720); S.camV=0; S.camTo=null; }
-  else S.buildMode=false;
+  if(id!=='town') S.buildMode=false;
   if(HONEY.includes(id)) S.homeRoom=id;
   if(ROOMS[id].lm) S.floor[ROOMS[id].lm]=id;
   S.follow=null;
   if(S.hoverB) setHoverB(null);
-  S.room=id; buildRoom();
+  S.room=id;
+  // Back in town, look at the building we came out of; a wide home opens in its middle.
+  if(ROOMS[id].w){ const b=id==='town'&&bldOfRoom(from); S.camX=clampCam(b?bldX(b)-720:id==='town'?S.camX:(ROOMS[id].w-1440)/2); S.camV=0; S.camTo=null; }
+  buildRoom();
   if(!quiet) A.whoosh();
   scheduleSave();
 }
-/* Camera: only the town scrolls. cam/cam2 move the world; the mask holes follow; the sky "para" layer moves slower. */
+/* Camera: the town and built homes scroll. cam/cam2 move the world; the mask holes follow; the sky "para" layer moves slower. */
 let camShown=null;
 function applyCam(){
   const x=camNow(); if(x===camShown) return; camShown=x;
   const t=`translate(${(-x).toFixed(1)} 0)`;
-  G.cam.setAttribute('transform',t); G.cam2.setAttribute('transform',t); G.holes.setAttribute('transform',t);
+  G.cam.setAttribute('transform',t); G.cam2.setAttribute('transform',t); G.holes.setAttribute('transform',t); G.lampHole.setAttribute('transform',t);
   if(R.para) R.para.setAttribute('transform',`translate(${(x*.65).toFixed(1)} 0)`);
 }
 function camScale(){ const m=svg.getScreenCTM(); return m&&m.a?m.a:1; }
@@ -1984,6 +2082,7 @@ function updateUI(){
   const lm=ROOMS[S.room].lm;
   document.querySelectorAll('#rooms [data-room]').forEach(b=>{ if(b.id!=='bBack') b.hidden=b.dataset.lm?b.dataset.lm!==lm:!honey; });
   $('#bBuild').hidden=!town; $('#bPaint').hidden=town;
+  const bl=ROOMS[S.room].bld; $('#bFurn').hidden=!(bl&&bl.type==='home');
   $('#bBuild').setAttribute('aria-pressed',String(!!S.buildMode));
 }
 function setHoverB(bid){
@@ -2029,6 +2128,7 @@ function changeBld(bid,type,c){
 }
 function razeBld(bid){
   const b=S.blds.find(b=>b.id===bid); if(!b) return; const x=lotX(b.lot);
+  for(const e of E.filter(e=>e.room===bid&&isFurn(e))) removeEnt(e,true);
   for(const e of E) if(e.room===bid){ e.room='town'; e.surf=null; e.fall=null; e.eat=null; e.eatBy=null; if(!e.heldBy){ e.x=clamp(x+rand(-120,120),80,TW-80); e.y=420; startFall(e); } }
   S.blds=S.blds.filter(o=>o!==b); delete ROOMS[bid]; delete S.paint[bid]; delete S.lamps[bid];
   drawTown(); sortZ(); A.whoosh();
@@ -2794,7 +2894,8 @@ function drawMap(){
   let hx, hy;
   if(bid){ const F=mFrame(bldX(bid)), bb=S.blds.find(b=>b.id===bid)||{}, r=mBld(bid==='honey'?'honey':LM[bid]?bid:bb.type||'home',bb.c|0,F); [hx,hy]=fp(F,0,r.D/2,r.h+10); }
   else { const x=clamp(viewCX(),0,TW), t=(x-3860)*MK; [hx,hy]=x<3860?gp(t-MG,6):gp(-6,t+MG); }
-  s+=`<g pointer-events="none" transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)})"><g class="mpin"><path d="M0,0 C-6,-10 -16,-18 -16,-30 A16,16 0 0 1 16,-30 C16,-18 6,-10 0,0 Z" fill="#FF7A5C" ${SW} stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="-30" r="6" fill="#FFF8EE" ${SW} stroke-width="3"/></g></g>`;
+  // the pin is the map's way back: tapping it closes the map right where you were (a wide invisible circle makes it easy to hit)
+  s+=`<g data-pin="1" class="hot" transform="translate(${hx.toFixed(1)} ${hy.toFixed(1)})"><g class="mpin"><circle cx="0" cy="-26" r="30" fill="transparent"/><path d="M0,0 C-6,-10 -16,-18 -16,-30 A16,16 0 0 1 16,-30 C16,-18 6,-10 0,0 Z" fill="#FF7A5C" ${SW} stroke-width="4" stroke-linejoin="round"/><circle cx="0" cy="-30" r="6" fill="#FFF8EE" ${SW} stroke-width="3"/></g></g>`;
   $('#mapSvg').innerHTML=`<g id="mZoom">${s}</g>`;
   // open on the middle of town: the crossroads, the park and the big buildings around them
   { const [fx,fy]=gp(-120,100); mPanTo(720-MZ*fx,500-MZ*fy); }
@@ -2859,7 +2960,7 @@ function redrawMap(bid){
   if(!mapOn) return; const t=mT.slice(); drawMap(); mPanTo(t[0],t[1]);
   const el=bid&&$(`#mapSvg [data-mb="${bid}"]`); if(el) el.classList.add('mpop');
 }
-// Tapping the map: a building takes you inside, anywhere else drops you on the street. With the hammer on, an empty lot
+// Tapping the map: the pin puts you back where you were, a building takes you inside, anywhere else drops you on the street. With the hammer on, an empty lot
 // or a built house opens the builder right on the map.
 // Dragging the map looks around (with a little glide); a drag is never a tap.
 let mDrag=null, mVel=null;
@@ -2878,6 +2979,7 @@ function mapUp(ev){
 }
 function mapTap(ev){
   if(mapUp.skip) return;
+  if(ev.target.closest('[data-pin]')){ closeMap(); A.whoosh(); return; }
   const bEl=ev.target.closest('[data-mb]'), lEl=ev.target.closest('[data-ml]');
   if(bEl&&mBuild&&/^b\d+$/.test(bEl.dataset.mb)){ openBuild({bid:bEl.dataset.mb,map:true}); return; }
   if(bEl){ const bid=bEl.dataset.mb; closeMap(); A.knock(); switchRoom(roomFor(bid)); return; }
@@ -2906,7 +3008,7 @@ function toWorld(e,lx,ly){
 function head(e){ return e.kind==='char'?toWorld(e,0,-196+offY(e)):toWorld(e,0,-92); }
 function hand(c){ return c.drag?toWorld(c,68,-216):toWorld(c,60,-80+offY(c)); }
 function isStowed(e){ return e.kind==='item'&&e.room==='kitchen'&&/^fridge\d$/.test(e.surf||'')&&!S.fridgeOpen; }
-function canUse(s,e){ if(e.kind!=='item'&&!s.chars) return false; if(s.fridge&&(e.kind!=='item'||!S.fridgeOpen)) return false; return true; }
+function canUse(s,e){ if(isFurn(e)) return false; if(e.kind!=='item'&&!s.chars) return false; if(s.fridge&&(e.kind!=='item'||!S.fridgeOpen)) return false; return true; }
 const surfY=(s,e)=>s.itemY&&e.kind==='item'?s.itemY():s.y;
 const minYof=e=>e.kind==='item'?ITEMS[e.type].h+10:(e.kind==='char'?250:150);
 
@@ -2914,7 +3016,7 @@ function startFall(e,vx=0,vy=0){
   e.surf=null; e.landT=null; e.roll=0;
   if(!vx&&!vy){
     let best=null;
-    for(const s of ROOMS[e.room].surf){ if(!canUse(s,e)||e.x<s.x1||e.x>s.x2) continue; const y=surfY(s,e); if(e.y>=y&&e.y<=y+28&&(!best||y<best.y)) best={y,id:s.id}; }
+    for(const s of surfsOf(e.room)){ if(!canUse(s,e)||e.x<s.x1||e.x>s.x2) continue; const y=surfY(s,e); if(e.y>=y&&e.y<=y+28&&(!best||y<best.y)) best={y,id:s.id}; }
     if(best){ e.y=best.y; e.fall=null; land(e,best.id,0); return; }
   }
   e.fall={vx,vy,floorY:e.y>=FT+8?Math.min(e.y,FB):(e.kind==='item'?858:868)};
@@ -2926,7 +3028,7 @@ function stepFall(e,dt){
   const mn=minYof(e); if(e.y<mn){ e.y=mn; if(f.vy<0) f.vy=0; }
   if(f.vy<=0) return;
   let hit=null;
-  for(const s of ROOMS[e.room].surf){ if(!canUse(s,e)||e.x<s.x1||e.x>s.x2) continue; const y=surfY(s,e); if(py<=y+1&&e.y>=y&&(!hit||y<hit.y)) hit={y,id:s.id}; }
+  for(const s of surfsOf(e.room)){ if(!canUse(s,e)||e.x<s.x1||e.x>s.x2) continue; const y=surfY(s,e); if(py<=y+1&&e.y>=y&&(!hit||y<hit.y)) hit={y,id:s.id}; }
   if(!hit&&e.y>=f.floorY) hit={y:f.floorY,id:'floor'};
   if(!hit) return;
   e.y=hit.y; const v=f.vy;
@@ -2946,7 +3048,7 @@ function land(e,id,v){
 }
 function sortZ(){
   const list=[];
-  for(const e of E){ if(e.room!==S.room||e.heldBy||e.eatBy) continue; list.push({k:e.drag?1e6+(e.dragT||0):e.y+(e.kind!=='item'?.5:0),e}); }
+  for(const e of E){ if(e.room!==S.room||e.heldBy||e.eatBy) continue; list.push({k:e.drag?1e6+(e.dragT||0):e.y+(e.kind!=='item'?.5:0)-(isFurn(e)?3000:0),e}); }
   for(const p of S.props) list.push({k:p.y,p});
   list.sort((a,b)=>a.k-b.k);
   for(const o of list){
@@ -2964,6 +3066,7 @@ function lift(e){
   if(e.heldBy){ const c=byId[e.heldBy]; if(c) c.holding=null; e.heldBy=null; }
   e.drag=true; e.dragT=++dragN; e.fall=null; e.landT=null; e.surf=null; e.sc=1; e.dragVx=0; e.roll=0; e.walkTo=null; e.walk=false;
   e.el.setAttribute('filter','url(#lift)');
+  if(isFurn(e)) dropRiders(e);
   A.pop(e.kind==='item'?1.1:.8);
   if(e.kind==='char') lastChar=e;
   sortZ();
@@ -2971,9 +3074,9 @@ function lift(e){
 function drop(e,vx=0,vy=0){
   e.drag=false; e.el.removeAttribute('filter');
   for(const c of E) c.wantFood=false;
-  if(e.kind==='item'&&tryGive(e)){ sortZ(); scheduleSave(); return; }
+  if(e.kind==='item'&&!isFurn(e)&&tryGive(e)){ sortZ(); scheduleSave(); return; }
   // Let go over a car: hop straight into its seat.
-  const car=S.room==='town'&&CARS.find(c=>e.x>c.surf.x1-30&&e.x<c.surf.x2+30&&e.y>c.surf.y-200&&e.y<LANEY[c.lane]+10);
+  const car=S.room==='town'&&!isFurn(e)&&CARS.find(c=>e.x>c.surf.x1-30&&e.x<c.surf.x2+30&&e.y>c.surf.y-200&&e.y<LANEY[c.lane]+10);
   if(car){ e.y=car.surf.y; e.fall=null; land(e,car.surf.id,0); return; }
   if(Math.hypot(vx,vy)>900) startFall(e,clamp(vx*.5,-2000,2000),clamp(vy*.5,-2200,1400));
   else startFall(e);
@@ -3017,6 +3120,7 @@ function removeEnt(e,quiet){
   if(e.heldBy){ const c=byId[e.heldBy]; if(c) c.holding=null; }
   if(!e.spawned) S.removed.add(e.id);
   const i=E.indexOf(e); if(i>=0) E.splice(i,1); delete byId[e.id]; e.el.remove();
+  if(isFurn(e)) dropRiders(e);
   if(!quiet){ burst('star',e.x,e.y-40,5); A.whoosh(); }
   scheduleSave();
 }
@@ -3031,8 +3135,8 @@ function travel(e,id){
   e.drag=false; e.el.removeAttribute('filter');
   const held=e.holding&&byId[e.holding], from=S.room;
   e.room=id; e.y=360; e.surf=null; e.fall=null;
-  if(ROOMS[id].w){ const b=bldOfRoom(from); e.x=clamp((b?bldX(b):viewCX())+rand(-80,80),80,ROOMS[id].w-80); }
-  else e.x=clamp(720+rand(-120,120),80,1360);
+  if(id==='town'){ const b=bldOfRoom(from); e.x=clamp((b?bldX(b):viewCX())+rand(-80,80),80,TW-80); }
+  else { const W=ROOMS[id].w||1440; e.x=clamp(W/2+rand(-120,120),80,W-80); }
   if(held) held.room=id;
   switchRoom(id,true); A.whoosh();
   if(!e.heldBy) startFall(e);
@@ -3055,8 +3159,11 @@ function tapEnt(e){
     e.wigT=now;
     const snd=ITEMS[e.type].snd;
     if(e.heldBy){ A.pop(.9); return; }
+    if(e.type==='wardrobe'){ A.creak(); openDress(lastChar); return; }
+    if(e.type==='floorlamp'){ e.on=!e.on; e.el.querySelector('.fshade').setAttribute('fill',e.on?'#FFE36E':'#4CB8D8'); e.el.querySelector('.fbulb').setAttribute('fill',e.on?'#FFF6C9':'#F3E9D2'); A.click(); if(e.on) burst('star',e.x,e.y-340,3); return; }
+    if(e.type==='tv'){ e.ch=((e.ch||0)+1)%TVN; e.el.querySelector('.tvs').innerHTML=tvScene(e.ch); A.click(); A.boop(); return; }
     if(e.type==='ball'){ e.hopT=now; A.boing(); }
-    else if(e.type==='car'&&!e.fall){ e.roll=(e.x>720?-1:1)*rand(650,900); A.vroom(); }
+    else if(e.type==='car'&&!e.fall){ e.roll=(e.x>viewCX()?-1:1)*rand(650,900); A.vroom(); }
     else if(e.type==='dino'){ e.hopT=now; A.roar(); }
     else if(e.type==='soap'){ A.bubble(); A.bubble(.1); for(let i=0;i<6;i++) spawn('bubble',e.x+rand(-30,30),e.y-40,{vx:rand(-50,50),vy:rand(-160,-80),life:1.6,vr:0,sc:rand(.6,1.2)}); }
     else if(e.type==='can'){ A.pour(); for(let i=0;i<6;i++) spawn('drop',e.x+66,e.y-66,{vx:rand(20,80),vy:rand(-40,40),grav:1400,life:.6,vr:0}); }
@@ -3126,7 +3233,6 @@ function tapHot(h,el){
     case 'hydrant': { A.splash(); const x=+el.dataset.x; for(let i=0;i<12;i++) spawn('drop',x+rand(-8,8),724,{vx:rand(-260,260),vy:rand(-620,-360),grav:1400,life:.9,vr:0}); break; }
     case 'mailbox': { A.chime(); const x=+el.dataset.x; burst('heart',x,700,4); break; }
     case 'ttree': { A.rustle(); const x=+el.dataset.x; for(let i=0;i<5;i++) spawn('leaf',x+rand(-70,70),rand(520,640),{vx:rand(-80,80),vy:rand(-60,40),grav:260,life:1.6,vr:rand(-200,200)}); break; }
-    case 'tv': S.tvCh=(S.tvCh+1)%TVN; if(R.tvScreen) R.tvScreen.innerHTML=tvScene(S.tvCh); A.click(); A.boop(); break;
     case 'register': A.ching(); for(let i=0;i<5;i++) spawn('coin',1080+rand(-20,20),490,{vx:rand(-160,160),vy:rand(-440,-260),grav:1200,life:1,vr:rand(-300,300)}); break;
     case 'buy': {
       const [px,py]=el.dataset.piv.split(' ').map(Number);
@@ -3435,14 +3541,14 @@ function stepCam(dt){
   for(const d of ptrs.values()){
     if(!d.e||!d.lifted||d.cx==null||!m) continue;
     const L=m.e, Rr=m.e+1440*m.a, dir=d.cx<L+90?-1:d.cx>Rr-90?1:0;
-    if(dir){ const old=S.camX; S.camX=clampCam(S.camX+dir*900*dt); d.e.x=clamp(d.e.x+S.camX-old,40,TW-40); S.camV=0; S.camTo=null; return; }
+    if(dir){ const old=S.camX; S.camX=clampCam(S.camX+dir*900*dt); d.e.x=clamp(d.e.x+S.camX-old,40,wOf(d.e)-40); S.camV=0; S.camTo=null; return; }
   }
   if([...ptrs.values()].some(d=>d.pan&&d.moved)) return;
   if(S.follow!=null){ const c=CARS[S.follow]; if(riders(c).some(e=>e.kind!=='item')){ S.camX=clampCam(S.camX+(c.x-720-S.camX)*Math.min(1,dt*2.5)); S.camV=0; S.camTo=null; return; } S.follow=null; }
   if(S.camTo!=null){ S.camX+=(S.camTo-S.camX)*Math.min(1,dt*5); if(Math.abs(S.camTo-S.camX)<1){ S.camX=S.camTo; S.camTo=null; scheduleSave(); } return; }
   if(S.camV){
     S.camX+=S.camV*dt; S.camV*=Math.pow(.04,dt);
-    if(S.camX<0||S.camX>TW-1440){ S.camX=clampCam(S.camX); S.camV=0; }
+    if(S.camX<0||S.camX>ROOMS[S.room].w-1440){ S.camX=clampCam(S.camX); S.camV=0; }
     if(Math.abs(S.camV)<10){ S.camV=0; scheduleSave(); }
   }
 }
@@ -3510,11 +3616,25 @@ $('#boxGrid').addEventListener('click',ev=>{
 $('#bBoxDone').addEventListener('click',()=>{ $('#box').hidden=true; });
 $('#box').addEventListener('click',ev=>{ if(ev.target.id==='box') $('#box').hidden=true; });
 
+/* ================= Furniture ================= */
+$('#furnGrid').innerHTML=FURN_ORDER.map(t=>`<button type="button" class="tile" data-type="${t}" aria-label="${t}">${itemIcon(t)}</button>`).join('');
+function openFurn(){ $('#furnGrid').classList.toggle('full',E.filter(e=>e.spawned).length>=MAXSP); $('#furn').hidden=false; A.creak(); }
+$('#furnGrid').addEventListener('click',ev=>{
+  const b=ev.target.closest('button[data-type]'); if(!b) return; const t=b.dataset.type;
+  const e=spawnItem(t,viewCX()+rand(-260,260),ITEMS[t].h+20);
+  if(!e){ bump(b); A.boop(); return; }
+  e.fall.floorY=rand(850,930);
+  $('#furn').hidden=true; A.pop(1.2); burst('star',e.x,e.y,4);
+});
+$('#bFurnDone').addEventListener('click',()=>{ $('#furn').hidden=true; });
+$('#furn').addEventListener('click',ev=>{ if(ev.target.id==='furn') $('#furn').hidden=true; });
+
 /* ================= Toolbar, splash, reset ================= */
 document.addEventListener('pointerdown',()=>A.init(),{capture:true});
 $('#rooms').addEventListener('click',ev=>{ const b=ev.target.closest('[data-room]'); if(b&&b.dataset.room!==S.room){ A.init(); switchRoom(b.dataset.room); } });
 $('#bDress').addEventListener('click',()=>{ A.init(); openDress(lastChar); });
 $('#bBox').addEventListener('click',()=>{ A.init(); openBox(); });
+$('#bFurn').addEventListener('click',()=>{ A.init(); openFurn(); });
 $('#bBuild').addEventListener('click',()=>{ A.init(); if(S.room!=='town') return; A.bang(); setBuildMode(!S.buildMode); if(S.buildMode) A.bang(.14); });
 $('#buildGrid').addEventListener('click',ev=>{
   const b=ev.target.closest('button'); if(!b||!pick) return; const o=pick; closeBuild();
@@ -3526,12 +3646,11 @@ $('#bBuildDone').addEventListener('click',closeBuild);
 $('#build').addEventListener('click',ev=>{ if(ev.target.id==='build') closeBuild(); });
 $('#bPaint').addEventListener('click',()=>{
   A.init(); const r=ROOMS[S.room]; S.paint[S.room]=(S.paint[S.room]+1)%r.paints.length; applyPaint(); A.sparkle();
-  for(let i=0;i<8;i++) spawn('star',rand(60,1380),rand(60,700),{vx:rand(-40,40),vy:rand(-80,-30),life:1,sc:rand(.6,1)});
+  for(let i=0;i<8;i++) spawn('star',camNow()+rand(60,1380),rand(60,700),{vx:rand(-40,40),vy:rand(-80,-30),life:1,sc:rand(.6,1)});
   scheduleSave();
 });
 $('#bSound').addEventListener('click',ev=>{ A.init(); const b=ev.currentTarget; const m=!A.muted; A.setMuted(m); b.classList.toggle('muted',m); b.setAttribute('aria-pressed',String(!m)); b.setAttribute('aria-label',m?'Sound off':'Sound'); });
 $('#bMap').addEventListener('click',()=>{ A.init(); openMap(); });
-$('#bMapClose').addEventListener('click',()=>{ closeMap(); A.whoosh(); });
 $('#mapSvg').addEventListener('click',mapTap);
 $('#bMapBuild').addEventListener('click',()=>{ A.init(); A.bang(); setMapBuild(!mBuild); if(mBuild) A.bang(.14); redrawMap(); });
 $('#mapSvg').addEventListener('pointerdown',mapDown);
