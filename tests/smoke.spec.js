@@ -20,6 +20,13 @@ async function dragTo(page, from, to, steps = 12) {
   await page.mouse.up();
 }
 
+/** The map has no close button: tapping the map drops you on the street there; the 'you are here' pin puts you back where you were. */
+async function leaveMap(page) {
+  const r = await page.evaluate(() => { const b = document.querySelector('#mapSvg [data-pin] circle').getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, w: b.width }; });
+  expect(r.w).toBeGreaterThanOrEqual(52); // a finger-sized target
+  await page.mouse.click(r.x, r.y);
+}
+
 let errors;
 test.beforeEach(async ({ page }) => {
   errors = [];
@@ -31,7 +38,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page.locator('#splash')).toBeHidden();
   // Play lands on the town map (the main page); close it to play on the street
   await expect(page.locator('#map')).toBeVisible();
-  await page.getByRole('button', { name: 'Close map' }).click();
+  await leaveMap(page);
   await expect(page.locator('#map')).toBeHidden();
 });
 test.afterEach(() => { if (errors) expect(errors, 'page errors').toEqual([]); });
@@ -45,7 +52,8 @@ test('Play lands on the town map, the main page', async ({ page }) => {
   const labels = await page.locator('#mapSvg text').allTextContents();
   for (const name of ['SHOPPING', 'MALL', 'HOSPITAL', 'LIBRARY', 'SCHOOL', 'GROCERY', 'COFFEE', 'RESTAURANT'])
     expect(labels).toContain(name);
-  await page.getByRole('button', { name: 'Close map' }).click();
+  await expect(page.locator('#bMapClose')).toHaveCount(0); // no X: tapping the map is the way out
+  await leaveMap(page);
   await expect(page.locator('#map')).toBeHidden();
   expect(await page.evaluate(() => window.__pt.S.room)).toBe('town');
 });
@@ -94,7 +102,10 @@ test('the hammer builds a house that can be entered and is saved', async ({ page
   await page.reload();
   expect(await page.evaluate(() => [window.__pt.S.room, window.__pt.S.blds.length])).toEqual([b.id, 1]);
   await page.getByRole('button', { name: 'Play' }).click();
-  await page.getByRole('button', { name: 'Close map' }).click();
+  // the pin is on the shop; tapping it puts you back inside, and the back button goes to town
+  await leaveMap(page);
+  await expect(page.locator('#map')).toBeHidden();
+  expect(await page.evaluate(() => window.__pt.S.room)).toBe(b.id);
   await page.locator('#bBack').click();
   await expect.poll(() => page.evaluate(() => window.__pt.S.room)).toBe('town');
 });
@@ -109,6 +120,50 @@ test('a building can be changed and taken away', async ({ page }) => {
   await page.locator('#bld-b1').click();
   await page.locator('#buildGrid [data-raze]').click();
   expect(await page.evaluate(() => [window.__pt.S.blds.length, !!window.__pt.ROOMS.b1])).toEqual([0, false]);
+});
+
+test('a new home is empty, scrolls, and gets furniture from the bed button', async ({ page }) => {
+  const b = await page.evaluate(() => window.__pt.addBld(2, 'home', 3));
+  await expect(page.locator('#bFurn')).toBeHidden();
+  await page.evaluate((id) => window.__pt.switchRoom(id), b.id);
+  // empty: nothing inside but the walls, and it is two screens wide, opening in the middle
+  expect(await page.locator('#ents > g').count()).toBe(0);
+  expect(await page.evaluate((id) => [window.__pt.ROOMS[id].w, window.__pt.S.camX], b.id)).toEqual([2880, 720]);
+  // swiping the wall scrolls the room
+  await dragTo(page, await toScreen(page, 1440, 500), await toScreen(page, 1000, 500));
+  await expect.poll(() => page.evaluate(() => window.__pt.S.camX)).toBeGreaterThan(1000);
+  // the bed button adds furniture; a friend dropped on the bed lies down, and falls off when the bed is moved
+  await expect(page.locator('#bFurn')).toBeVisible();
+  await page.locator('#bFurn').click();
+  await expect(page.locator('#furnGrid .tile')).toHaveCount(13);
+  await page.locator('#furnGrid [data-type="bed"]').click();
+  await expect(page.locator('#furn')).toBeHidden();
+  await expect.poll(() => page.evaluate(() => window.__pt.E.find((e) => e.type === 'bed').surf)).toBe('floor');
+  const bed = await page.evaluate(() => { const e = window.__pt.E.find((e) => e.type === 'bed'); return { id: e.id, x: e.x, y: e.y }; });
+  await page.evaluate(([id, bed]) => { const mo = window.__pt.byId.mo; mo.room = id; mo.x = bed.x + 60; mo.y = bed.y - 400; mo.surf = null; mo.fall = { vx: 0, vy: 0, floorY: 900 }; window.__pt.switchRoom(id, true); }, [b.id, bed]);
+  await expect.poll(() => page.evaluate(() => window.__pt.byId.mo.surf)).toBe('F0:' + bed.id);
+  await dragTo(page, await toScreen(page, bed.x - 160, bed.y - 60), await toScreen(page, bed.x - 400, bed.y - 60));
+  await expect.poll(() => page.evaluate(() => window.__pt.byId.mo.surf)).toBe('floor');
+  // furniture is saved with the house
+  await page.waitForTimeout(600);
+  await page.reload();
+  expect(await page.evaluate(() => window.__pt.E.filter((e) => e.type === 'bed').length)).toBe(1);
+});
+
+test('furniture is drawn in the anime look and the floor lamp lights up', async ({ page }) => {
+  const b = await page.evaluate(() => window.__pt.addBld(2, 'home', 3));
+  await page.evaluate((id) => window.__pt.switchRoom(id), b.id);
+  await page.locator('#bFurn').click();
+  // every cel shadow points at a clip path in the stage's defs
+  const missing = await page.evaluate(() => [...document.querySelectorAll('#furnGrid [clip-path]')]
+    .map((el) => el.getAttribute('clip-path').slice(5, -1)).filter((id) => !document.querySelector('#world defs #' + id)));
+  expect(missing).toEqual([]);
+  await page.locator('#furnGrid [data-type="floorlamp"]').click();
+  await expect.poll(() => page.evaluate(() => window.__pt.E.find((e) => e.type === 'floorlamp').surf)).toBe('floor');
+  const lamp = await page.evaluate(() => { const e = window.__pt.E.find((e) => e.type === 'floorlamp'); return { id: e.id, x: e.x, y: e.y }; });
+  const p = await toScreen(page, lamp.x, lamp.y - 200);
+  await page.mouse.click(p.x, p.y);
+  await expect(page.locator(`#ents [data-id="${lamp.id}"]`)).toHaveClass(/\bon\b/);
 });
 
 test('the hat changes skin tone and hair style', async ({ page }) => {
@@ -301,7 +356,7 @@ test('the town map shows every building and takes you where you tap', async ({ p
   await page.locator('#buildGrid [data-t="home"][data-c="6"]').click();
   await expect(page.locator('#map')).toBeVisible();
   expect(await page.evaluate(() => window.__pt.S.blds.find(b => b.id === 'b3').c)).toBe(6);
-  await page.getByRole('button', { name: 'Close map' }).click();
+  await leaveMap(page);
   await expect(page.locator('#map')).toBeHidden();
   // the hammer is off again next time; then an empty lot just drops you on the street there
   await page.getByRole('button', { name: 'Town map' }).click();
@@ -334,7 +389,8 @@ test('every house style is different, on the street, inside and on the map', asy
   for (let i = 1; i <= n; i++) {
     await page.evaluate((id) => window.__pt.switchRoom(id), 'b' + i);
     await expect.poll(() => page.evaluate(() => window.__pt.S.room)).toBe('b' + i);
-    expect(await page.locator('#roomL [data-hot="tv"]').count()).toBe(1);
+    expect(await page.locator('#roomL [data-hot="lamp"]').count()).toBe(1);
+    expect(await page.locator('#ents > g').count()).toBe(0);
   }
   await page.evaluate(() => window.__pt.switchRoom('town'));
   // and each is drawn on the map, all different
